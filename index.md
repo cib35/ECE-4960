@@ -8,4 +8,5 @@ I recently completed my Undergraduate degree at Cornell and am currently pursuin
 ## Hobbies 
 Really any sports; Indoors or outdoors (soccer, basketball, ping-pong, etc). I play the guitar and the ukulele due to my lack of singing capablity. 
 
+profile picture(2).jpeg
 
