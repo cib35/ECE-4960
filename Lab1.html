@@ -1,0 +1,149 @@
+			<!DOCTYPE HTML>
+			<!--
+				Massively by HTML5 UP
+				html5up.net | @ajlkn
+				Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+			-->
+			<html>
+
+			<head>
+				<title>Lab 1</title>
+				<meta charset="utf-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+				<link rel="stylesheet" href="assets/css/main.css" />
+				<noscript>
+					<link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+			</head>
+
+			<body class="is-preload">
+
+				<!-- Wrapper -->
+				<div id="wrapper">
+
+					<!-- Header -->
+					<header id="header">
+						<a href="index.html" class="logo">Home</a>
+					</header>
+
+					<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">Home</a></li>
+							<li class="active"><a href="Lab1.html">Lab 1</a></li>
+						</ul>
+
+					</nav>
+
+					<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+						<section class="post">
+							<header class="major">
+								<h1>Lab 1<br /></h1>
+							</header>
+
+						</section>
+
+						<!-- Lab 1(a)  -->
+						<section class="post">
+							<h2>Section 1-a: The Artemis board</h2>
+							<h3>Ordered</h3>
+							<ol>
+
+								<!-- Problem 1 -->
+								<li>Installed Arduino IDE, and Added Sparkfun Apollo3 board support pack V1.1.2</li>
+
+								<!-- Problem 2 -->
+								<li>Initially, the compilation was taking a very long time but after excluding the folder C:\Program
+									Files\Arduino from the antivirus scans, the compilation time reduced considerably</li>
+
+								<!-- Problem 3 -->
+								<li> Running “Example: Blink it Up”:</li>
+
+								<div style="width:100%;text-align:center;">
+
+										<iframe width="560" height="315" src="https://www.youtube.com/embed/i9I7DfgzPt8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>					
+								</div>
+
+								<!-- Problem 4 -->
+								<li> Running “Example2_Serial”:</li>
+
+								<div style="width:100%;text-align:center;">
+
+										<iframe width="560" height="315" src="https://www.youtube.com/embed/Kl-awvgwcc4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+								</div>
+
+								<!-- Problem 5 -->
+								<li> Running “Example4_analogRead.”: Grabbed the entire board inside my hand to increase the
+									temperature, and it took
+									a considerate amount of time for the temperature to rise
+								</li>
+
+								<div style="width:100%;text-align:center;">
+
+									<iframe width="560" height="315" src="https://www.youtube.com/embed/LvzZxfzWrx4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+								</div>
+
+								<!-- Problem 6 -->
+								<li> Running “Example1_MicrophoneOutput”:</li>
+
+								<div style="width:100%;text-align:center;">
+
+									<iframe width="560" height="315" src="https://www.youtube.com/embed/JnUXjz_kKKU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+								</div>
+
+								<!-- Problem 7 -->
+								<li>
+									As shown below, the yellow LED is turned on when the battery is connected. To program the board
+									so it turns
+									on when someone whistles, I used the general structure from "Example1_MicrophoneOutput" (6), and
+									I wrote in a
+									few lines of code, as shown below, to read the file, acquire the sensor readings, and put it
+									through a conditional statement
+									with some chosen threshold (1200). This value was chosen by experimenting, in general with
+									random noise the frequency is ~300 and
+									the whistling jumps it up to ~1400, therefore, a value of 1200 provides a safe comparison to
+									determine if the LED should
+									turn on or not. Finally, to turn on the LED, the code from "Example: Blink it up" (3) was
+									implemented.
+								</li>
+								<br>
+
+
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 1/7.PNG" style="max-width:75%;"
+										alt="" /></a>
+									<br>
+									<b{text-align: center;}>Added Snipet of Code</b>
+
+								</div>
+
+								<br><br>
+								<div style="width:100%;text-align:center;">
+
+										<iframe width="560" height="315" src="https://www.youtube.com/embed/tfjxCe3g2hw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+									<br>
+									<b{text-align: center;}>Running code with the wire attached</b>
+										<br>
+										<br>
+											<iframe width="560" height="315" src="https://www.youtube.com/embed/jCnm7whVdbQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+										<br>
+										<b{text-align: center;}>Running code with only the battery attached</b>
+
+								</div>
+							</ol>
+						</section>
+
+					<!-- Scripts -->
+					<script src="assets/js/jquery.min.js"></script>
+					<script src="assets/js/jquery.scrollex.min.js"></script>
+					<script src="assets/js/jquery.scrolly.min.js"></script>
+					<script src="assets/js/browser.min.js"></script>
+					<script src="assets/js/breakpoints.min.js"></script>
+					<script src="assets/js/util.js"></script>
+					<script src="assets/js/main.js"></script>
+
+			</body>
+
+			</html>
