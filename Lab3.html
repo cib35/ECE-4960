@@ -62,9 +62,55 @@
 					<li> Dimensions: 6.5 X 5.5 X 4.5 in (L X W X H)
 					<li> Weight: 460 grams
 					<li> Time taken to charge: 8 hours for the first 2 times, 5-6 hours during normal use.
-					<li> Range of speed:
-					<li> Range of acceleration:
+					<li> Range of speed: The way the maximum speed was calculated was by using the slowmo feature in the
+						phone (shown below). We put starting and finishing lines and determined the amount of time it takes
+						for the robot to travel that distance. At full battery life, the range of speed is: 0 m/s to
+						0.8636 m/s.
+						<br>
+
+						<div style="width:100%;text-align:center;">
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/S4vHWTtwq8w"
+								frameborder="0"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+								allowfullscreen></iframe>
+							<br>
+							<b{text-align: center;}>Motion of the robot</b>
+
+						</div>
+
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 3/distance.jpg"
+								style="max-width:75%;" alt="" /></a>
+							<br>
+							<b{text-align: center;}>Picture of the setup</b>
+
+						</div>
+
 					<li> Braking distance:
+						<ul>
+							<li>
+								Case 1: When the accelerator input is released, the rolling distance is ~81 inches
+							</li>
+							<li>
+								Case 2: When a reverse acceleration is applied at full speed, the braking distance: ~35
+								inches
+								<div style="width:100%;text-align:center;">
+
+									<iframe width="560" height="315" src="https://www.youtube.com/embed/WJHfbmbsCEc"
+										frameborder="0"
+										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+										allowfullscreen></iframe>
+									<br>
+
+
+								</div>
+
+
+							</li>
+
+							The braking distance was calculated in these two cases by using a measuring tape from a predefined starting point to where the robot stopped. 
+						</ul>
+
 					<li> Surface it can handle: Tile, Wood (Not carpet: Cannot spin about z-axis)
 					<li> Stunts:
 						<ul>
@@ -75,14 +121,45 @@
 						</ul>
 					<li>
 						Robot turns around it own axis with no resistance on tile and wood, but on carpet it is unable
-						to opposite the friction between the tires and the carpet.
+						to oppose the friction between the tires and the carpet.
 					</li>
 
 					<li>
 						How well can I operate the car with manual control:
 						<ul>
 							<li>
+								Starting from ~5m distance, at full speed, one can stop ~2.5 inches away from the wall,
+								without a crash.
+							</li>
+							<li>
+								Tricks:
+								<ul>
+									<li>
+										Spindive 540:
+										<div style="width:100%;text-align:center;">
+											<iframe width="560" height="315"
+												src="https://www.youtube.com/embed/c-93H2XAKL0" frameborder="0"
+												allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+												allowfullscreen></iframe>
+										</div>
+									</li>
+									<li>
+										Perpflip:
+										<div style="width:100%;text-align:center;">
+											<iframe width="560" height="315"
+												src="https://www.youtube.com/embed/Bogf1QAgVlI" frameborder="0"
+												allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+												allowfullscreen></iframe>
+										</div>
+									</li>
 
+								</ul>
+								None of these can be done reliably, as it took a long time and effort to replicate these
+								tricks.
+
+							</li>
+							<li>
+								It is definitely not possible to manually control the robot and balance it on one set of wheels like an inverted pendulum. 
 							</li>
 						</ul>
 					</li>
@@ -101,16 +178,74 @@
 				<!-- Objective -->
 				<h2>Objective</h2>
 				<ol>
-					The goal is to familiarize myself with the simulator and the virtual robot. 
+					The goal is to familiarize myself with the simulator and the virtual robot.
 				</ol>
-				<!-- Scripts -->
-				<script src="assets/js/jquery.min.js"></script>
-				<script src="assets/js/jquery.scrollex.min.js"></script>
-				<script src="assets/js/jquery.scrolly.min.js"></script>
-				<script src="assets/js/browser.min.js"></script>
-				<script src="assets/js/breakpoints.min.js"></script>
-				<script src="assets/js/util.js"></script>
-				<script src="assets/js/main.js"></script>
+
+				<!-- Perform tests on the virtual robot -->
+				<h2>Perform tests on the virtual robot</h2>
+				<ul>
+					<li>
+						As shown below, the virtual robot works with the default linear and angular velocities: <br>
+						<div style="width:100%;text-align:center;">
+
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/_KqzGQaD2UE"
+								frameborder="0"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+								allowfullscreen></iframe>
+
+						</div>
+
+					</li>
+
+					<!-- Minimum Linear and Angular speed -->
+					<li>
+						Minimum Linear and Angular speed of the robot is close to zero, I noticed that there is no lower
+						bound to the minimum velocity, it is never really zero. However, It comes very close to zero, as shown
+						below: <br>
+
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 3/MinLinAng Speed.PNG"
+								style="max-width:75%;" alt="" /></a>
+							<br>
+
+						</div>
+					</li>
+
+					<li>
+						When the robot runs into an obstacle, it stops moving and the visual representation of the robot turns into an exclamation sign: <br>
+
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 3/Hits wall.PNG"
+								style="max-width:40%;" alt="" /></a>
+							<br>
+
+						</div>
+
+
+					</li>
+
+					<li>
+						The robot can be picked up and moved during motion, and when the robot is placed back down it continues to move in the direction that it was moving before it was picked up:
+
+						<div style="width:100%;text-align:center;">
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/Fmuk8y49Xq0"
+								frameborder="0"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+								allowfullscreen></iframe>
+						</div>
+
+					</li>
+
+			</section>
+
+			<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
 
 </body>
 
