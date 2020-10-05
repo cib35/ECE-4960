@@ -1,0 +1,376 @@
+<!DOCTYPE HTML>
+<!--
+					Massively by HTML5 UP
+					html5up.net | @ajlkn
+					Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+				-->
+<html>
+
+<head>
+	<title>Lab 4</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<link rel="stylesheet" href="assets/css/main.css" />
+	<noscript>
+		<link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+</head>
+
+<body class="is-preload">
+
+	<!-- Wrapper -->
+	<div id="wrapper">
+
+		<!-- Header -->
+		<header id="header">
+			<a href="index.html" class="logo">Home</a>
+		</header>
+
+		<!-- Nav -->
+		<nav id="nav">
+			<ul class="links">
+				<li><a href="index.html">Home</a></li>
+				<li><a href="Lab1.html">Lab 1</a></li>
+				<li><a href="Lab2.html">Lab 2</a></li>
+				<li><a href="Lab3.html">Lab 3</a></li>
+				<li class="active"><a href="Lab4.html">Lab 4</a></li>
+
+			</ul>
+
+		</nav>
+
+		<!-- Main -->
+		<div id="main">
+
+			<!-- Post -->
+			<section class="post">
+				<header class="major">
+					<h1>Lab 3(a): Open Loop Control (Real Robot)<br /></h1>
+				</header>
+			</section>
+			<!-- Lab 4(a)  -->
+			<section class="post">
+				<!-- Objective -->
+				<h2>Objective</h2>
+				<ol>
+					The goal of this lab is to change the remote control capabilities into an open loop control system
+					within the car.
+					<br>
+
+					<h3>Note: Code can be found on the Github Repository </h3>
+				</ol>
+
+				<!-- Tasks -->
+				<h2>Steps for Part A:</h2>
+				<ol>
+					<li>
+						<!-- 1 -->
+						Hooked up the Artemis and the motor driver using the Qwiic connector:
+
+						<div style="width:50%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 4/Inner Assembly.jpg"
+								style="max-width:75%;" alt="" /></a>
+
+
+						</div>
+
+					</li>
+
+					<li>
+						<!-- 2 -->
+						Ran the code to find the address of the SCMD and it matches the one reported on Sparkfun:
+
+						<div style="width:50%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 4/address.jpg"
+								style="max-width:75%;" alt="" /></a>
+
+
+						</div>
+
+
+					</li>
+
+					<li>
+						<!-- 3 -->
+						Took the car apart as shown in the figure in Part 1. Removed the shell and bumpers from the car,
+						removed the battery, and took out the PCB. Finally, cut the motor wires and power wires and
+						hooked them onto the SCMD. I faced two problems while doing this:
+						<ul>
+							<li>
+								Screwing in the wires without a wire stripper and not enough length on the motor wires
+								was difficult.
+							</li>
+							<li>
+								I stored the motor driver in place of the PCB, and made the hole (where the power button
+								used to be) bigger to fit the Quiic wire through and to the Artemis board as shown in
+								Figure 1.
+							</li>
+						</ul>
+
+					</li>
+
+					<li>
+						<!-- 4 -->
+						<ul>
+							Used the Arduino IDE and installed the SCMD library.
+							<li>
+								In order to check if I can control both motors, I used the example "Motor Test" and made
+								one small change shown below. I updated the address to the correct address of the SCMD
+								obtained in Part 2:
+
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 4/Changes_to_motortest.PNG"
+										style="max-width:75%;" alt="" /></a>
+								</div>
+
+								As shown below, both the motors work after making this change:
+
+								<div style="width:100%;text-align:center;">
+									<iframe width="560" height="315" src="https://www.youtube.com/embed/wHAlJOjeSpE"
+										frameborder="0"
+										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+										allowfullscreen></iframe>
+								</div>
+
+							</li>
+
+							<li>
+								While exploring the lower limit for which each of the motors still turns, I noticed that
+								the lower limit varies as I alter the value up and down. As shown below, I altered the
+								third parameter in the "myMotorDriver.setDrive". We already know the upper limit is 255,
+								and after experimenting a lot, the lower limit resulted to be <b>50</b>. The value of
+								the lower bound kept fluctuating as I performed the test but it seemed to alter around
+								the value 50.
+								<div style="width:100%;text-align:center;"> <a href="#" class="image main"></a><img
+										src="images/Lab 4/Lower Limit.jpg" style="max-width:75%;" alt="" /></a>
+								</div>
+							</li>
+							<li>
+								After running the robot without any factors, the robot started drifting to the left.
+								This may be due to a number of reasons, friction due to the wheels or internal
+								resistances within the motor, etc. So to solve this issue, I considered four cases:
+
+								<ul>
+									<li>
+										Case 1: Robot's input speed is the lower limit <b>50</b>.
+									</li>
+									<li>
+										Case 2: Robot's input speed is the upper limit <b>255</b>.
+									</li>
+									<li>
+										Case 3: Robot's input speed is between the lower limit and the mid point between
+										lower and upper limits.
+									</li>
+									<li>
+										Case 4: Robot's input speed is between the Upper limit and the mid point between
+										lower and upper limits.
+									</li>
+								</ul>
+
+								I wanted to have one calibration factor that I can alter to lean left or right depending
+								on the error, which I defined as <b>Cf</b>. The definition of this factor is as follows:
+								<ul>
+									<li>
+										0 < Cf < 0.5: Robot will lean left (where 0 is when it turns left the most)
+											</li>
+									<li>
+										0.5 < Cf < 1: Robot will lean Right (where 1 is when it turns right the most)
+											</li>
+								</ul>
+								I can alter this calibration factor and consider the cases stated above to create conditional
+								statement as shown below:
+								<div style="width:100%;text-align:center;"> <a href="#" class="image main"></a><img
+										src="images/Lab 4/Conditionals 1.PNG" style="max-width:75%;" alt="" /></a>
+								</div>
+								<div style="width:100%;text-align:center;"> <a href="#" class="image main"></a><img
+										src="images/Lab 4/Conditionals 2.PNG" style="max-width:75%;" alt="" /></a>
+								</div>
+
+								These conditional statements provide the appropriate speeds for the right and left wheel
+								individually (as shown above). For example, the robot tends to drift right in my case,
+								the value I chose for Cf is 0.47, which will provide an appropriate left wheel and right
+								wheel speeds such that right > left, which will allow the robot to drive straight by
+								accomodating for the drift right. The reason I chose this approach is because it is generalized and can work for any value of speed I choose and any robot I pick. After making these changes, the robot follows a
+								straight line as shown in the video:
+
+								<div style="width:100%;text-align:center;">
+									<iframe width="560" height="315" src="https://www.youtube.com/embed/0dCWfIem8j4"
+										frameborder="0"
+										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+										allowfullscreen></iframe>
+								</div>
+
+							</li>
+						</ul>
+					</li>
+
+					<li>
+						<!-- 5 -->
+
+						Assembled the robot completely. Closed the battery pack and the motor driver within the robot.
+						Due to a lack of space the artemis board and the Lipo battery were taped onto the bottom side of
+						the robot as shown below:
+
+						<div style="width:50%;text-align:center;"> <a href="#" class="image main"></a><img
+								src="images/Lab 4/Full Assembly.jpg" style="max-width:75%;" alt="" /></a>
+						</div>
+
+					</li>
+
+					<li>
+						<!-- 6 -->
+						To demonstrate the open loop and untethered control of the robot, I decided to use concepts from
+						Lab 2 where
+						we used the PDM to determine the frequency in the surroundings of the robot. I combined the code
+						from Part 4
+						- Driving the robot straight, and the code from example PDM/Microphone output. I chose a
+						threshold of the
+						frequency to be 2000:
+						<ul>
+							<li>
+								If the frequency is above this threshold, it starts acting crazy (rotating at full
+								speed).
+							</li>
+							<li>
+								If the frequency is below this threshold, then it moves slowly in one direction.
+							</li>
+						</ul>
+
+						I created subfunctions within the main file to account for calibrating of the robot's motors to
+						be able to
+						drive straight when below the threshold, and the other subfunctions were responsible for the
+						motion of the
+						robot and the frequency reading. As shown below, by inputing a higher frequency I can control
+						the robot to
+						make turns. The issue I faced is that the frequency readings are incredibly noisy due to the
+						motors of the
+						robot. Since the Artemis is taped onto the bottom side of the robot, the noise is amplified from
+						the motors
+						(since it is right next to it). However, this provides an interesting motion of various
+						unpredictable turns,
+						and I can be seen in the video trying to avoid the robot from colliding into me due to this
+						unpredicatability.
+
+						<div style="width:100%;text-align:center;">
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/kWkmNaN3gS8"
+								frameborder="0"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+								allowfullscreen></iframe>
+						</div>
+					</li>
+
+				</ol>
+
+
+			</section>
+
+			<!-- Lab 4(b)  -->
+			<section class="post">
+				<header class="major">
+					<h1>Lab 4(b): Open Loop Control (Virtual robot)<br /></h1>
+				</header>
+			</section>
+
+			<section class="post">
+				<!-- Objective -->
+				<h2>Objective</h2>
+				<ol>
+					The goal is to familiarize myself with the simulator and the virtual robot, and Jupyter.
+				</ol>
+
+				<!-- Perform tests on the virtual robot -->
+				<h2>Perform tests on the virtual robot</h2>
+				<ol>
+					<li>
+						Successful setup process after running the setup.sh: <br>
+
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 4/Successful Setup Process.png"
+								style="max-width:75%;" alt="" /></a>
+							<br>
+
+						</div>
+
+					</li>
+
+					<li>
+						Range finder activated as shown below: <br>
+
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 4/Range Finder.png"
+								style="max-width:75%;" alt="" /></a>
+							<br>
+
+						</div>
+
+					</li>
+
+
+					<li>
+						Got the Robot's pose as shown below: <br>
+
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 4/Robot Pose.png"
+								style="max-width:75%;" alt="" /></a>
+							<br>
+
+						</div>
+
+					</li>
+
+					<li>
+						Moved the robot as instructed in Jupyter: <br>
+
+						<div style="width:100%;text-align:center;">
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/njWHEdCt2vI"
+								frameborder="0"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+								allowfullscreen></iframe>
+						</div>
+
+					</li>
+
+					<li>
+						Created a rectangular trajectory by using an open loop control on the robot: <br>
+
+						<div style="width:100%;text-align:center;">
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/4FJTMoWdOrA"
+								frameborder="0"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+								allowfullscreen></iframe>
+						</div>
+
+						<!-- Code -->
+						<h2>Code</h2>
+						<pre><code>
+# Repeat 4 times
+for x in range(1,5):
+
+	# Move forward and stop
+	robot.set_vel(v=0.2,w=0.)
+	time.sleep(4)
+	robot.set_vel(v=0,w=0)
+
+	# Turn Left
+	robot.set_vel(v=0,w=-0.4)
+	time.sleep(3.9)
+	robot.set_vel(v=0,w=0)
+							
+						</code></pre>
+
+					</li>
+
+				</ol>
+			</section>
+
+			<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
