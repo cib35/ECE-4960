@@ -1,0 +1,586 @@
+<!DOCTYPE HTML>
+<!--
+					Massively by HTML5 UP
+					html5up.net | @ajlkn
+					Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+				-->
+<html>
+
+<head>
+	<title>Lab 5</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<link rel="stylesheet" href="assets/css/main.css" />
+	<noscript>
+		<link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+</head>
+
+<body class="is-preload">
+
+	<!-- Wrapper -->
+	<div id="wrapper">
+
+		<!-- Header -->
+		<header id="header">
+			<a href="index.html" class="logo">Home</a>
+		</header>
+
+		<!-- Nav -->
+		<nav id="nav">
+			<ul class="links">
+				<li><a href="index.html">Home</a></li>
+				<li><a href="Lab1.html">Lab 1</a></li>
+				<li><a href="Lab2.html">Lab 2</a></li>
+				<li><a href="Lab3.html">Lab 3</a></li>
+				<li><a href="Lab4.html">Lab 4</a></li>
+				<li class="active"><a href="Lab5.html">Lab 5</a></li>
+
+
+			</ul>
+
+		</nav>
+
+		<!-- Main -->
+		<div id="main">
+
+			<!-- Post -->
+			<section class="post">
+				<header class="major">
+					<h1>Lab 5(a): Obstacle Avoidance<br /></h1>
+				</header>
+			</section>
+			<!-- Lab 5(a)  -->
+			<section class="post">
+
+				<h2>Prelab</h2>
+
+				Advantages include low cost, and usage of minimum power, whereas, these sensors have low data transfer rate and range of usage is relatively shorter. I would use them in my robot for cases where lighting conditions are not to my favor. 
+
+				<!-- Objective -->
+				<h2>Objective</h2>
+				<ol>
+					The goal of this lab is to enable the robot to perform obstacle avoidance.
+					<br>
+				</ol>
+
+				<!-- Proximity Sensor -->
+				<h2>Proximity Sensor:</h2>
+				<ul>
+					<li>
+						Installed the SparkFun VCNL4040 Proximity Sensor Library, and hooked up the VCNL4040 to the
+						Artemis board using a QWIIC connector as shown below:
+
+						<div style="width:50%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 5/A.2.Proximity.PNG.jpg"
+								style="max-width:75%;" alt="" /></a>
+
+						</div>
+
+					</li>
+
+					<li>
+						Ran the code to scan the I2C channel to find the sensor, as shown in datasheet:
+
+						<div style="width:50%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 5/A.3.Proximity.PNG"
+								style="max-width:75%;" alt="" /></a>
+
+						</div>
+					</li>
+
+					<li>
+						Test the proximity sensor: <br>
+						Shown below is the plot of the sensor readings vs the actual distance. The figure shows sensor
+						readings for multiple colors (blue,red,black), and for the color blue it shows two variations,
+						one with bright lighting, and the other with dark lighting. As shown, the sensor is sensitive to
+						the color of the material it is sensing, however, the lighting conditions did not affect the
+						sensor readings considering the difference in the light blue and dark blue curves is very
+						minimal.
+						<br> <br>
+						Texture:
+						<ul>
+							<li>
+								Black: Plastic (Phone case)
+							</li>
+							<li>
+								Blue: PLA (3d printer material)
+							</li>
+							<li>
+								Red: Leather (Wallet)
+							</li>
+						</ul>
+
+						Used the timestamp on the serial monitor and changing the position of the object in front of the
+						sensor to determine the delay in the sensing, and also used it to determine the frequency of the
+						reading process: <br>
+
+						Delay: 4.673 s <br>
+						Frequency: Every ~67 ms <br>
+
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 5/A.4.Proximity.PNG"
+								style="max-width:75%;" alt="" /></a>
+
+						</div>
+					</li>
+
+
+				</ul>
+
+				<!-- Time of Flight Sensor -->
+				<h2>Time of Flight Sensor:</h2>
+
+				<li>
+					Installed the SparkFun VL53L1X 4m laser distance sensor Library, and hooked up the VL53L1X to
+					the Artemis board using a QWIIC connector as shown below:
+
+				</li>
+
+				<li>
+					Ran the code to scan the I2C channel to find the sensor, as shown in datasheet:
+
+					<div style="width:50%;text-align:center;">
+						<a href="#" class="image main"></a><img src="images/Lab 5/A.3.FlightSensor.PNG"
+							style="max-width:75%;" alt="" /></a>
+
+					</div>
+				</li>
+				<li>
+					Tested the ToF sensor using "Example 1: Read Distance" which showed around 80 mm to be the distance
+					which is clearly incorrect so I used "Example7: Calibration" to calibrate the sensor, however, the
+					code would not run even if the distance was less than 10 cm. After debugging the code, I noticed
+					that the "distanceSensor.checkForDataReady()" reads zero and results in an infinite loop. After
+					adding startRanging and stopRanging as shown below, this problem went away and the calibration was
+					successfully completed.
+					<br>
+
+					<!-- Code -->
+					<pre><code>
+
+while (tLowDistanceCount < 20)
+{
+	while (!distanceSensor.checkForDataReady())
+	{
+	distanceSensor.startRanging();
+	delay(1);
+	}
+	if (distanceSensor.getDistance() < 100)
+	{
+	tLowDistanceCount++;
+	}
+	else
+	{
+	tLowDistanceCount = 0;
+	}
+	distanceSensor.stopRanging();
+	distanceSensor.clearInterrupt();
+}
+</code></pre>
+
+
+					The calibrated depth values from the ToF sensor:
+
+
+					<div style="width:50%;text-align:center;">
+						<a href="#" class="image main"></a><img src="images/Lab 5/A.5.FlightSensor.PNG"
+							style="max-width:75%;" alt="" /></a>
+
+					</div>
+				</li>
+				<li>
+					The maximum speed is known to be 0.8636 m/s as determined in lab 3. The Intermeasurement Period is
+					the alotted time the sensor will wait for the laser pulse to return. Consdering the maximum speed of
+					the robot is relatively high, I would be more inclined to choose a lower value for this period since
+					it increases the sampling rate. Even though it decreases the accuracy at longer range, I prioritize
+					the behavior closer to the wall than further away from it to prevent object collision. After
+					testing, the optimal value resulted to be 20 ms. The test was conducted by rapidly moving the robot
+					at varying periods, and determining which one would detect the change in distance the quickest.
+					There is obviously a source of human error in this, however, among the spectrum of possible values,
+					this was the lowest chosen period. <br> <br>
+
+					The timing budget has the following possible values: 15, 20, 33, 50, 100, 200, and 500. The timing
+					budget is the amount of time over which the measurement is taken. The intermeasurement period has to
+					be greater than or equal to the timing budget, therefore, the timing budget can be chosen to be
+					either 15 or 20. <br> <br>
+
+					To confirm this, given the speed to be 0.8638 m/s and the Int. period to be 30 ms, the total
+					distance over which a measurement is sampled is 26 mm. If the Int. period were to be higher, then
+					this distance would also be higher which means the robot would not be able to detect an object in
+					time before a collision. <br> <br>
+
+					The setup code to test the different settings: <br> <br>
+
+					<!-- Code -->
+					<pre><code>
+uint16_t budget = 15;
+uint16_t period = 500;
+
+distanceSensor.setIntermeasurementPeriod(period); 
+distanceSensor.setTimingBudgetInMs(budget);
+</code></pre>
+
+				</li>
+
+				<li>
+					Out of the three modes, I would consider the high mode the most appropriate for the surrounding
+					where the real robot will be tested (which is my room). After running "setDistanceModeMedium()", the
+					program did not consider it as a code, therefore, I disregarded this mode and ran tests for the
+					other two modes. The priority is to determine the difference in sampling rates between the two
+					modes, since we already know that the long mode provides a higher distance range of 4 m relative to
+					the 1.3 m for the short mode. The setup is as follows:
+
+					The calibrated depth values from the ToF sensor:
+
+
+					<div style="width:50%;text-align:center;">
+						<a href="#" class="image main"></a><img src="images/Lab 5/A.7.FlightSensor.jpg"
+							style="max-width:75%;" alt="" /></a>
+
+					</div>
+
+					<br>
+					Period/Sampling rate:<br>
+					<ul>
+						Long mode: 91.8 ms/ 10.89 Hz <br>
+						Short mode: ~ 34 ms/ 29.4 Hz
+					</ul>
+
+					<br>
+					Considering the maximum speed is 0.8638 m/s, the maximum measuring distance for each mode is: <br>
+					<ul>
+						Long mode: 79.3 mm<br>
+						Short mode: 29.4 mm
+					</ul>
+
+					<br>
+					Accuracy at 1.3 meters:<br>
+					<ul>
+						Long mode: 1.302 m<br>
+						Short mode: 1.28 m
+					</ul>
+
+					<br>
+					Accuracy at 2 meters:<br>
+					<ul>
+						Long mode: 1.98 m<br>
+						Short mode: N/A
+					</ul>
+
+					These values prove that the advantage of using the long mode is the increased range only, and the
+					con is the low sampling rate. Even at distances within the range of the short mode, the accuracy of
+					the long mode is close to that of the short mode. However, considering the robot's relatively fast
+					speed in a small space, it would be beneficial to get a faster sampling rate, therefore, I expect to
+					use <b>short mode.</b>
+				</li>
+				<br>
+
+				<li>
+					As shown below, after moving my hands rapidly in front of the sensor, the signal failed. This will
+					impact motion implementation in future labs due to the lack of the robot's ability to move quickly.
+					If the robot moves quickly, the sensor measurements will fail which means I will need to implement
+					methods to avoid this from happening. This will affect localization and path planning since our
+					measured data will be faulty.
+					<br>
+					<div style="width:50%;text-align:center;">
+						<a href="#" class="image main"></a><img src="images/Lab 5/A.8.FlightSensor.jpg"
+							style="max-width:75%;" alt="" /></a>
+
+					</div>
+				</li>
+
+				<li>
+					As shown below, the sensor is not very sensitive to varying colors, and it is relatively accurate to the actual values. The ToF sensor range was measured by slowly increasing the distance between the object and the sensor until an unacceptable distance is reached, and in this case, the range came out to be from 0 to ~ 13 feet. Using the values shown in the figure below, the accuracy was calculated to be 1.726287544 %, and the repeatability is around 2% also. The ranging time was computed by putting micro() around the startRange and StopRange calls.
+					<div style="width:100%;text-align:center;">
+						<a href="#" class="image main"></a><img src="images/Lab 5/A.9.PNG"
+							style="max-width:100%;" alt="" /></a>
+
+					</div>
+
+				</li>
+
+
+				</ul>
+
+				<!-- Obstacle Avoidance -->
+				<h2>Obstacle Avoidance:</h2>
+				<li>
+					Discussion: As shown below, the robot is capable of detecting objects and avoiding a collision with them. Everything worked great on the stationary platform, but when I put it down, the robot's motors found it difficult to fight against the floor friction so the robot could not rotate as smoothly. As I was ramping up the speed, I noticed the response time needed to be quicker, therefore, I increased the threshold at which it would detect an object and stop. I did not have enough time to record the speed relative to a piece of tape. 
+				</li>
+				<li> 
+					Setup: <br>
+					<div style="width:100%;text-align:center;">
+
+					<img src="images/Lab 5/Robot photo 1.jpg" style="max-width:25%;" alt="" />
+					<img src="images/Lab 5/Robot Photo 2.jpg" style="max-width:25%;" alt="" />
+					</div>
+				</li>
+
+
+				<li> 
+					Video of stationary robot: <br>
+					<div style="width:100%;text-align:center;">
+						<iframe width="560" height="315" src="https://www.youtube.com/embed/OEdhrulNUt8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					</div>
+				</li>
+
+				<li> 
+					Video of Moving robot: <br>
+					<div style="width:100%;text-align:center;">
+						<iframe width="560" height="315" src="https://www.youtube.com/embed/DdrBhee2HJ8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+					</div>
+				</li>
+
+				<li>
+					Code: <br>
+
+					<pre><code>
+
+						
+// Motors
+#include <Arduino.h>
+#include <stdint.h>
+#include "SCMD.h"
+#include "SCMD_config.h" //Contains #defines for common SCMD register names and values
+#include "Wire.h"
+
+#define LEDPIN 13
+
+SCMD myMotorDriver; //This creates the main object of one motor driver and connected slaves.
+
+// Distance sensor
+
+#include <ComponentObject.h>
+#include <RangeSensor.h>
+#include <SparkFun_VL53L1X.h>
+#include <vl53l1x_class.h>
+#include <vl53l1_error_codes.h>
+#include "SparkFun_VL53L1X.h" //Click here to get the library: http://librarymanager/All#SparkFun_VL53L1X
+
+SFEVL53L1X distanceSensor;
+
+
+void setup() {
+  // ------------------------ Motor Driver ------------------------ //
+
+  Serial.begin(115200);
+  pinMode(LEDPIN, OUTPUT);
+
+  //***** Configure the Motor Driver's Settings   *****//
+  myMotorDriver.settings.commInterface = I2C_MODE;
+
+  //  set address if I2C configuration selected with the config jumpers
+  myMotorDriver.settings.I2CAddress = 0x5D; //config pattern "0101" on board for address 0x5A
+
+  //  set chip select if SPI selected with the config jumpers
+  myMotorDriver.settings.chipSelectPin = 10;
+
+  //*****initialize the driver get wait for idle*****//
+  while ( myMotorDriver.begin() != 0xA9 ) //Wait until a valid ID word is returned
+  {
+    delay(500);
+  }
+
+  //  Check to make sure the driver is done looking for slaves before beginning
+  while ( myMotorDriver.ready() == false );
+
+  //*****Set application settings and enable driver*****//
+
+  while ( myMotorDriver.busy() );
+  myMotorDriver.enable();
+
+  // ------------------------ Distance Sensor  ------------------------ //
+  Wire.begin();
+
+  if (distanceSensor.begin() != 0) //Begin returns 0 on a good init
+  {
+    while (1)
+      ;
+  }
+
+  distanceSensor.setDistanceModeShort();
+
+}
+
+// Motors
+#define LEFT_MOTOR 0
+#define RIGHT_MOTOR 1
+int Rightspeed;
+int Leftspeed;
+int Speed = 120;
+int CloseEnough = 400; // mm
+
+void loop() {
+
+
+    // ------------------------ Motion ------------------------ //
+    // Move forward
+    digitalWrite( LEDPIN, LEFT_MOTOR );
+    digitalWrite( LEDPIN, RIGHT_MOTOR );
+    myMotorDriver.setDrive( LEFT_MOTOR, 0, Speed); //Drive Left wheel forward at Speed
+    myMotorDriver.setDrive( RIGHT_MOTOR, 1, Speed); //Drive Right wheel forward at Speed
+
+    // ------------------------ Distance Sensor  ------------------------ //
+
+    distanceSensor.startRanging(); //Write configuration bytes to initiate measurement
+    while (!distanceSensor.checkForDataReady())
+    {
+      delay(1);
+    }
+    int distance = distanceSensor.getDistance(); //Get the result of the measurement from the sensor
+
+
+    // If close to obstacle stop
+    if (distance < CloseEnough) {
+
+      digitalWrite( LEDPIN, LEFT_MOTOR );
+      digitalWrite( LEDPIN, RIGHT_MOTOR );
+
+      // Stop Robot
+      myMotorDriver.setDrive( LEFT_MOTOR, 1, 0); // Stop Left
+      myMotorDriver.setDrive( RIGHT_MOTOR, 1, 0); // Stop Right
+      delay(200);
+
+      // Move backwards and curve Counter clockwise
+      Rightspeed = Speed;  Leftspeed = 3*Speed/2;
+      myMotorDriver.setDrive( LEFT_MOTOR, 1, Leftspeed);
+      myMotorDriver.setDrive( RIGHT_MOTOR, 0, Rightspeed);
+      delay(250);
+
+      // Stop Robot
+      myMotorDriver.setDrive( LEFT_MOTOR, 1, 0); // Stop Left
+      myMotorDriver.setDrive( RIGHT_MOTOR, 1, 0); // Stop Right
+      delay(200);
+
+      // Rotate Counter clockwise
+      myMotorDriver.setDrive( LEFT_MOTOR, 1, Speed); // Left goes backwards
+      myMotorDriver.setDrive( RIGHT_MOTOR, 1, Speed); // Right goes forwards
+      delay(3000);
+
+      // Stop Robot
+      myMotorDriver.setDrive( LEFT_MOTOR, 1, 0); // Stop Left
+      myMotorDriver.setDrive( RIGHT_MOTOR, 1, 0); // Stop Right
+      delay(200);
+
+    }
+
+    Serial.print("Distance(mm): ");
+    Serial.println(distance);
+    distanceSensor.clearInterrupt();
+    distanceSensor.stopRanging();
+
+
+}
+					</code>
+
+					</pre>
+				</li>
+
+
+
+
+
+
+
+			</section>
+
+			<!-- Lab 5(b)  -->
+			<section class="post">
+				<header class="major">
+					<h1>Lab 5(b): Obstacle Avoidance on your virtual robot<br /></h1>
+				</header>
+			</section>
+
+			<section class="post">
+
+				<h2> Simulation:</h2>
+
+				<div style="width:100%;text-align:center;">
+
+					<iframe width="560" height="315" src="https://www.youtube.com/embed/-SvTeSoga9A" frameborder="0"
+						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+						allowfullscreen></iframe>
+				</div>
+
+				<!-- Code -->
+				<h2>Code:</h2>
+				<ol>
+					<pre><code>
+def perform_obstacle_avoidance(robot):
+while True:
+	# Obstacle avoidance code goes here
+	
+	# Move forward
+	robot.set_vel(0.5,0)
+
+	# If close to obstacle
+	if robot.get_laser_data() < 0.75:
+		
+		# Stop Robot
+		robot.set_vel(0,0)
+		
+		# Move backward and rotate
+		robot.set_vel(-0.3,0.5)
+		time.sleep(0.5)
+		
+		# Turn 90 degrees
+		robot.set_vel(0,0.2)
+		time.sleep(0.5)
+	
+		
+perform_obstacle_avoidance(robot)
+			</code></pre>
+
+					<!-- Questions -->
+					<h2>Questions</h2>
+					<ol>
+
+						<li>
+							The duration of a velocity command is 0.5 as shown in the code above.
+
+						</li>
+
+						<li>
+							The robot curves backwards in a counter-clock direction, and then rotates for another 0.5
+							seconds at 0.2 angular velocity. Therefore, in total it rotates by 0.7 radians in the
+							counter-clock direction.
+						</li>
+						<li>
+							The virtual robot managed to sense the distance at a linear speed of 0.5. If the velocity
+							was any higher, the robot would fail to sense the wall in time to avoid it.
+						</li>
+
+						<li>
+							The closest the virtual robot can get to the walls (obstacles) is about 0.3. This is because
+							of the thickness of the robot itself. As shown in the video, the robot gets very close to
+							the wall sometimes. The threshold picked to check with the sensors is 0.75, to ensure this
+							collision does not take place.
+
+						</li>
+						<li>
+							After running it multiple times, there has not been an instance where it has not worked.
+							However, I suspect that the robot may crash when an edge is placed in front of it such that
+							the depth is much higher since it cannot measure the depth to the edge itself. The robot got
+							close but never collided.
+
+						</li>
+					</ol>
+			</section>
+		</div>
+	</div>
+</body>
+
+</section>
+
+<!-- Scripts -->
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.scrollex.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
