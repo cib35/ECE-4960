@@ -1,0 +1,490 @@
+<!DOCTYPE HTML>
+<!--
+					Massively by HTML5 UP
+					html5up.net | @ajlkn
+					Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+				-->
+<html>
+
+<head>
+	<title>Lab 6</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<link rel="stylesheet" href="assets/css/main.css" />
+	<noscript>
+		<link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+</head>
+
+<body class="is-preload">
+
+	<!-- Wrapper -->
+	<div id="wrapper">
+
+		<!-- Header -->
+		<header id="header">
+			<a href="index.html" class="logo">Home</a>
+		</header>
+
+		<!-- Nav -->
+		<nav id="nav">
+			<ul class="links">
+				<li><a href="index.html">Home</a></li>
+				<li><a href="Lab1.html">Lab 1</a></li>
+				<li><a href="Lab2.html">Lab 2</a></li>
+				<li><a href="Lab3.html">Lab 3</a></li>
+				<li><a href="Lab4.html">Lab 4</a></li>
+				<li><a href="Lab5.html">Lab 5</a></li>
+				<li class="active"><a href="Lab6.html">Lab 6</a></li>
+
+
+			</ul>
+
+		</nav>
+
+		<!-- Main -->
+		<div id="main">
+
+			<!-- Post -->
+			<section class="post">
+				<header class="major">
+					<h1>Lab 6(a): IMU, PID, and Odometry<br /></h1>
+				</header>
+			</section>
+			<!-- Lab6(a)  -->
+			<section class="post">
+
+				<!-- Objective -->
+				<h2>Objective</h2>
+				The goal of this lab is to setup the IMU to enable your robot to estimate its orientation, and attempt
+				to do PID control on the rotational speed of the actual robot. <p>
+
+
+				<h2>Set up the IMU</h2>
+				<ol>
+					<li>
+						Installed the SparkFun 9DOF IMU Breakout - ICM 20948
+					</li>
+
+					<li>
+						Connected the IMU to the Artemis board using a QWIIC connector.
+					</li>
+
+					<li>
+						Scanned the I2C channel to find the sensor, matched the address we expected:
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 6/Setup_3.PNG"
+								style="max-width:100%;" alt="" /></a>
+						</div>
+
+
+					</li>
+
+					<li>
+						The following data is printed out when the arduino code is compiled and uploaded.
+
+						<!-- Data -->
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 6/IMU_4_Data.PNG"
+								style="max-width:100%;" alt="" /></a>
+						</div>
+
+						It provided various values and their meanings were determined after running the following
+						tests:
+						</p>
+
+						<ul>
+							<li>
+								<b>Flip:</b> Here you can see the accelerometer value travels from one side of the
+								x-axis to the other side (i.e. mirrored across the x-axis) when the robot is flipped.
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 6/IMU_4_flip.PNG"
+										style="max-width:75%;" alt="" /></a>
+								</div>
+							</li>
+
+							<li>
+								<b>Rotate:</b> As the robot is rotated in each of the x, y,and z directions, the
+								gyroscope and accelerometer values increase about that axis.
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 6/IMU_4_Rotate.PNG"
+										style="max-width:75%;" alt="" /></a>
+								</div>
+
+							</li>
+							<li>
+								<b> Translate:</b> As the robot is translated in each of the x, y,and z directions, the
+								gyroscope and accelerometer values increase in the direction of that respective axis.
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 6/IMU_4_Translate.PNG"
+										style="max-width:75%;" alt="" /></a>
+								</div>
+							</li>
+						</ul>
+
+
+						The data values were determined to be:
+						<ul>
+							<li>
+								Acc: This is the data from the accelerometer in each of the directions. [ax,ay,az]
+							</li>
+							<li>
+								Gyr: This is the gyroscope that provides the angular speed in each of the directions, it
+								is a 3d vector that measures rotational speed around each axis [x,y,z].
+							</li>
+							<li>
+								Mag: Values from the magnetometer - This measures the magnetic forces.
+
+							</li>
+							<li>
+								Tmp: Measures the temperature of the IMU in Celsius
+							</li>
+
+						</ul>
+					</li>
+
+
+				</ol>
+
+				<h2>Accelerometer</h2>
+				<ol>
+					<li>
+						Using the equations: <br>
+						<center>
+							<math>
+								a<sub>x</sub> = 1gsin(Θ) <br>
+								a<sub>z</sub> = 1gcos(Θ) <br>
+								a<sub>x</sub>/a<sub>z</sub> = tan(Θ) <br>
+							</math>
+						</center>
+
+						We can find the roll and tilt to be: <br>
+						<center>
+							<math>
+								Θ = atan(<box>a<sub>x</sub>
+									<over>a<sub>z</sub></over>
+								</box>) <br>
+								Φ = atan(<box>a<sub>y</sub>
+									<over>a<sub>z</sub></over>
+								</box>) <br>
+							</math>
+						</center>
+
+						After including the math.h library, it was easy to compute and print the roll and tilt values as
+						shown below:
+
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 6/ACC_1_Convert.PNG"
+								style="max-width:75%;" alt="" /></a>
+						</div>
+
+						<ul>
+							<li>
+								The pitch and roll for {-90,0,90} degrees are shown below: <br>
+
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 6/ACC_1_Roll.PNG"
+										style="max-width:75%;" alt="" /></a>
+									<b{text-align: center;}>Roll</b>
+
+								</div>
+
+
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 6/ACC_1_Pitch.PNG"
+										style="max-width:75%;" alt="" /></a>
+									<b{text-align: center;}>Pitch</b>
+								</div>
+
+							</li>
+							Accuracy of the accelerometer is low, there is a lot of noise in the measurements as shown
+							in the figure above. Using the two point calibration:
+							<ul>
+								<li>
+									Point 1 = 0.51 degrees
+								</li>
+								<li>
+									Point 2 = 92 degrees
+								</li>
+							</ul>
+							The different between the two is (92-0.51) 91.49, therefore, the conversion factor would be
+							<b>91.49/90 or 1.02. </b>
+							<li>
+								As shown in class, the Low pass complimentary filter can calculated as shown below:
+
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 6/ACC_2_NewPitchCode.PNG"
+										style="max-width:75%;" alt="" /></a>
+								</div>
+
+								The new plot of pitch compared to the old plot is very close (as shown below).
+
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 6/ACC_2_NewPitch.PNG"
+										style="max-width:75%;" alt="" /></a>
+								</div>
+
+
+							</li>
+						</ul>
+
+					</li>
+
+				</ol>
+
+				<h2>Gyroscope</h2>
+				<ol>
+					Used the equations from class to compute pitch, roll, and yaw angles from the gyroscope:
+
+					<div style="width:100%;text-align:center;">
+						<a href="#" class="image main"></a><img src="images/Lab 6/GYR_EquationsCode.PNG"
+							style="max-width:75%;" alt="" /></a>
+					</div>
+
+					<ul>
+						<li>
+							Comparing the output to the pitch and roll values from the accelerometer and the filtered
+							response:
+
+							<div style="width:100%;text-align:center;">
+								<a href="#" class="image main"></a><img src="images/Lab 6/GYR_1_Compare.PNG"
+									style="max-width:100%;" alt="" /></a>
+							</div>
+
+							The values don't overlap completely but the behavior is somewhat similar. Also, the Pitch
+							and roll from the Gyro slowly decreases with time which is the reason for the Pitch and roll
+							to be lower for the Gyro. The behavior of the graph in pitch, roll, and yaw is as expected.
+
+
+						</li>
+						<li>
+							The Low pass complimentary filter can calculated as shown below:
+
+							<div style="width:100%;text-align:center;">
+								<a href="#" class="image main"></a><img src="images/Lab 6/GYR_2_NewPitchCode.PNG"
+									style="max-width:75%;" alt="" /></a>
+							</div>
+
+							The filtered values for both gyroscope and accelerometer measurements are almost identical
+							for pitch:
+
+							<div style="width:100%;text-align:center;">
+								<a href="#" class="image main"></a><img src="images/Lab 6/GYR_2_FilteredPitch.PNG"
+									style="max-width:50%;" alt="" /></a>
+							</div>
+
+							Same is true for the roll as shown below:
+
+							<div style="width:100%;text-align:center;">
+								<a href="#" class="image main"></a><img src="images/Lab 6/GYR_2_FilteredRoll.PNG"
+									style="max-width:50%;" alt="" /></a>
+							</div>
+
+
+						</li>
+					</ul>
+				</ol>
+
+				<h2>Magnetometer</h2>
+				<ol>
+					Used the equations from class to convert magnetometer data into a yaw angle as shown below:
+
+					<div style="width:100%;text-align:center;">
+						<a href="#" class="image main"></a><img src="images/Lab 6/MAG_Equations.PNG"
+							style="max-width:75%;" alt="" /></a>
+					</div>
+
+					AFter testing my sensor for hours, I came to the conclusion that my sensor was broken and did not do
+					a great job measuring yaw with this method because when I ran this code on my friend's (Emma)
+					sensor, the result made sense i.e. In the north direction the sensor read 0 as shown below. It
+					starts at north but then turns east, and then finally west.
+
+					<div style="width:100%;text-align:center;">
+						<a href="#" class="image main"></a><img src="images/Lab 6/MAG_Yaw.PNG" style="max-width:50%;"
+							alt="" /></a>
+					</div>
+
+					After conducting the test again, but with a slight pitch (not completely horizontal), the result was
+					similar and did not affect the final behavior, therefore, the output is robust.
+					<p></p>
+					<h2>PID Control</h2>
+					<ol>
+						<li>
+							Program to make the motors spin in opposite directions at increasing, followed by
+							decreasing, speeds while recording yaw:
+
+							<pre><code>
+// Ramp up
+  for (int i = 0; i < Speed; i++)
+  {
+    digitalWrite( LEDPIN, LEFT_MOTOR );
+    digitalWrite( LEDPIN, RIGHT_MOTOR );
+    myMotorDriver.setDrive( LEFT_MOTOR, 0, i); //Drive left motor forwards
+    myMotorDriver.setDrive( RIGHT_MOTOR, 0, i); //Drive right motor backwards
+    delay(100);
+    if ( myICM.dataReady() ) {
+      myICM.getAGMT();
+
+      // Measure yaw from gyro
+      timecurr = millis();
+      dt = (timecurr - timeprev) / 1000;
+      timeprev = timecurr;
+      yaw = yaw - (myICM.gyrZ()) * dt;
+      Serial.println(yaw);
+    }
+  }
+
+  // Ramp Down
+  for (int i = Speed; i > 0; i--)
+  {
+    digitalWrite( LEDPIN, LEFT_MOTOR );
+    digitalWrite( LEDPIN, RIGHT_MOTOR );
+    myMotorDriver.setDrive( LEFT_MOTOR, 0, i); //Drive left motor forwards
+    myMotorDriver.setDrive( RIGHT_MOTOR, 0, i); //Drive right motor backwards
+    delay(100);
+    
+    if ( myICM.dataReady() ) {
+      myICM.getAGMT();
+
+      // Measure yaw from gyro
+      timecurr = millis();
+      dt = (timecurr - timeprev) / 1000;
+      timeprev = timecurr;
+      yaw = yaw + (myICM.gyrZ()) * dt;
+      Serial.println(yaw);
+    }
+  }
+  // Stop
+  myMotorDriver.setDrive( LEFT_MOTOR, 0, 0);
+  myMotorDriver.setDrive( RIGHT_MOTOR, 0, 0);
+  delay(99999999);
+							</code></pre>
+
+							The motion of the robot programmed as shown above:
+							<div style="width:100%;text-align:center;">
+								<iframe width="560" height="315" src="https://www.youtube.com/embed/7on7qr-5BPE"
+									frameborder="0"
+									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+									allowfullscreen></iframe>
+							</div>
+
+							<ul>
+								As the plot below shows:
+
+								<div style="width:100%;text-align:center;">
+									<a href="#" class="image main"></a><img src="images/Lab 6/PID_1.PNG"
+										style="max-width:50%;" alt="" /></a>
+								</div>
+
+								<li>
+									Max Rotation Speed of ~ 800 rad/s
+								</li>
+
+								<li>
+									Deadband: Motor values below which the robot doesn’t spin is ~650 and ~725 for the
+									Right motor and Left motor, respectively.
+								</li>
+
+								<li>
+									Hysteresis: The size of the deadband is ~ 75.
+								</li>
+
+								<li>
+									As shown in the video, the right wheel starts moving before the left wheel.
+								</li>
+							</ul>
+
+						</li>
+
+					</ol>
+
+			</section>
+
+			<!-- Post -->
+			<section class="post">
+				<header class="major">
+					<h1>Lab 6(b): Odometry and Ground Truth in the Virtual Robot<br /></h1>
+				</header>
+			</section>
+			<!-- Lab6(a)  -->
+			<section class="post">
+
+				<h2>Code</h2>
+
+				<pre><code>
+def update_plot(robot):
+   # Code goes here
+    
+    # Odom
+    [xo,yo,tho] = robot.get_pose();
+    robot.send_to_plot(xo, yo, ODOM)
+    
+    # GT
+    [xg,yg,thg] = robot.get_gt_pose();
+    robot.send_to_plot(xg, yg, GT)
+    
+    time.sleep(0.1) 
+    
+while(1):
+	update_plot(robot)
+</code></pre>
+				<!-- Objective -->
+				<h2>Questions</h2>
+
+				<ul>
+					<li>
+						As shown in the code, I added a delay of 0.5 seconds, so I send data every 0.5 seconds.
+
+					</li>
+					<li>
+						After conducting tests for plotting large number of points and/or over long durations, I noticed
+						that the odometry pose increases in error, whereas, the Ground truth stays consistently
+						accurate, as shown below.
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 6/SIM_Longtime.PNG"
+								style="max-width:50%;" alt="" /></a>
+						</div>
+					</li>
+					<li>
+						The odometry trajectory looks similar to that of the ground truth for the first few time steps,
+						but as time goes on, the error increases and so does the deviation of the odom pose from the GT
+						pose, as shown above.
+
+
+
+					</li>
+					<li>
+						When the robot is stationary, the Ground truth is stationary at the true Pose, however, the
+						odometry has noise which is why it moves around the true pose as shown below:
+
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 6/SIM_Stationary.PNG"
+								style="max-width:50%;" alt="" /></a>
+						</div>
+
+					</li>
+					<li>
+						The noise in the odometry pose estimate increases with speed and time since the error
+						acculumates over time.
+
+					</li>
+				</ul>
+
+
+			</section>
+
+</body>
+
+</section>
+
+<!-- Scripts -->
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.scrollex.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
