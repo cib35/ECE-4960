@@ -313,50 +313,66 @@
 							decreasing, speeds while recording yaw:
 
 							<pre><code>
-// Ramp up
-  for (int i = 0; i < Speed; i++)
-  {
-    digitalWrite( LEDPIN, LEFT_MOTOR );
-    digitalWrite( LEDPIN, RIGHT_MOTOR );
-    myMotorDriver.setDrive( LEFT_MOTOR, 0, i); //Drive left motor forwards
-    myMotorDriver.setDrive( RIGHT_MOTOR, 0, i); //Drive right motor backwards
-    delay(100);
-    if ( myICM.dataReady() ) {
-      myICM.getAGMT();
 
-      // Measure yaw from gyro
-      timecurr = millis();
-      dt = (timecurr - timeprev) / 1000;
-      timeprev = timecurr;
-      yaw = yaw - (myICM.gyrZ()) * dt;
-      Serial.println(yaw);
-    }
-  }
+res_cmd->command_type = BYTESTREAM_TX;
+res_cmd->length = 14;
+//TODO: Put an example of a 32-bit integer and a 64-bit integer
+//for the stream. Be sure to add a corresponding case in the
+//python program.
+memcpy(res_cmd->data, &timecurr, 4); // time
+memcpy(res_cmd->data + 4, &currspeed, 4);
+memcpy(res_cmd->data + 8, &thd, 8);
+Serial.println(thd);
 
-  // Ramp Down
-  for (int i = Speed; i > 0; i--)
-  {
-    digitalWrite( LEDPIN, LEFT_MOTOR );
-    digitalWrite( LEDPIN, RIGHT_MOTOR );
-    myMotorDriver.setDrive( LEFT_MOTOR, 0, i); //Drive left motor forwards
-    myMotorDriver.setDrive( RIGHT_MOTOR, 0, i); //Drive right motor backwards
-    delay(100);
-    
-    if ( myICM.dataReady() ) {
-      myICM.getAGMT();
+//Serial.printf("Stream %d \n", bytestream_active);
+amdtpsSendData((uint8_t *)res_cmd, 14);
+STEP = 0.5;
+if (currspeed <= maxspeed && STOP == 0) { // Within range
+	if (ramp == 1) { // Ramp up
 
-      // Measure yaw from gyro
-      timecurr = millis();
-      dt = (timecurr - timeprev) / 1000;
-      timeprev = timecurr;
-      yaw = yaw + (myICM.gyrZ()) * dt;
-      Serial.println(yaw);
-    }
-  }
-  // Stop
-  myMotorDriver.setDrive( LEFT_MOTOR, 0, 0);
-  myMotorDriver.setDrive( RIGHT_MOTOR, 0, 0);
-  delay(99999999);
+	digitalWrite( LEDPIN, LEFT_MOTOR );
+	digitalWrite( LEDPIN, RIGHT_MOTOR );
+	currspeed = currspeed + STEP;
+	myMotorDriver.setDrive( LEFT_MOTOR, 1, currspeed); //Drive motor i forward at full speed
+	myMotorDriver.setDrive( RIGHT_MOTOR, 1, 0.9*currspeed); //Drive motor i forward at full speed
+
+	}
+	else // Ramp down
+	{
+	digitalWrite( LEDPIN, LEFT_MOTOR );
+	digitalWrite( LEDPIN, RIGHT_MOTOR );
+	currspeed = currspeed - STEP;
+	myMotorDriver.setDrive( LEFT_MOTOR, 1, currspeed);
+	myMotorDriver.setDrive( RIGHT_MOTOR, 1, 0.9*currspeed);
+	if (currspeed == 0) { // stop if ramped down
+		STOP = 1;
+	}
+	}
+}
+if (currspeed == maxspeed)
+{
+	ramp = 0;
+}
+
+if ( myICM.dataReady() ) {
+	myICM.getAGMT();                // The values are only updated when you call 'getAGMT'
+
+	// yaw from Gyro
+	timecurr = millis();
+	dt = (timecurr - timeprev) / 1000;
+	timeprev = timecurr;
+	yaw = yaw + (myICM.gyrZ()) * dt;
+	thd = myICM.gyrZ();
+}
+
+if (STOP == 1) {
+	digitalWrite( LEDPIN, LEFT_MOTOR );
+	digitalWrite( LEDPIN, RIGHT_MOTOR );
+	myMotorDriver.setDrive( LEFT_MOTOR, 0, 0);
+	myMotorDriver.setDrive( RIGHT_MOTOR, 0, 0);
+}
+}
+timeprev = timecurr;
 							</code></pre>
 
 							The motion of the robot programmed as shown above:
@@ -393,6 +409,34 @@
 								</li>
 							</ul>
 
+						</li>
+						<li>
+							Guided by the ramp response, the lowest possible speed at which one can reliably rotate the robot open loop around its own axis is ~150 deg/sec  which was determined by using the ramp up input and the response below. 
+
+							
+							<div style="width:100%;text-align:center;">
+								<a href="#" class="image main"></a><img src="images/Lab 6/OL_2.PNG"
+									style="max-width:75%;" alt="" /></a>
+							</div>
+
+						</li>
+
+						<li>
+							<ul>
+								<li>
+									Minimum sampling time of the TOF sensor can be found in Lab 5 for short mode to be 34 ms.
+								</li>
+								<li>
+									If the robot starts at 0.5m from a wall pointing straight towards it, and spins as slowly as possible, the initial distance would be 0.5 m. Then at a speed of 150 deg/sec, the robot would scan every 34 ms or every 5.1 degrees. The distance would change by (0.5/cos(5.1 deg) - 0.5) = 2 mm.
+									<br>
+									If it starts angled 45 degrees to the wall, the initial distance will be 0.5/cos(45 deg) = 0.7071, the angle change would still be 5.1 degrees, but the distance change will be (0.7071/cos(45 deg) - 0.5) = 0.5 m.
+								</li>
+								
+								<li>
+									
+								</li>
+
+							</ul>
 						</li>
 
 					</ol>
