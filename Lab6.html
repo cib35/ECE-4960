@@ -411,9 +411,11 @@ timeprev = timecurr;
 
 						</li>
 						<li>
-							Guided by the ramp response, the lowest possible speed at which one can reliably rotate the robot open loop around its own axis is ~150 deg/sec  which was determined by using the ramp up input and the response below. 
+							Guided by the ramp response, the lowest possible speed at which one can reliably rotate the
+							robot open loop around its own axis is ~150 deg/sec which was determined by using the ramp
+							up input and the response below.
 
-							
+
 							<div style="width:100%;text-align:center;">
 								<a href="#" class="image main"></a><img src="images/Lab 6/OL_2.PNG"
 									style="max-width:75%;" alt="" /></a>
@@ -424,19 +426,112 @@ timeprev = timecurr;
 						<li>
 							<ul>
 								<li>
-									Minimum sampling time of the TOF sensor can be found in Lab 5 for short mode to be 34 ms.
+									Minimum sampling time of the TOF sensor can be found in Lab 5 for short mode to be
+									34 ms.
 								</li>
 								<li>
-									If the robot starts at 0.5m from a wall pointing straight towards it, and spins as slowly as possible, the initial distance would be 0.5 m. Then at a speed of 150 deg/sec, the robot would scan every 34 ms or every 5.1 degrees. The distance would change by (0.5/cos(5.1 deg) - 0.5) = 2 mm.
+									If the robot starts at 0.5m from a wall pointing straight towards it, and spins as
+									slowly as possible, the initial distance would be 0.5 m. Then at a speed of 150
+									deg/sec, the robot would scan every 34 ms or every 5.1 degrees. The distance would
+									change by (0.5/cos(5.1 deg) - 0.5) = 2 mm.
 									<br>
-									If it starts angled 45 degrees to the wall, the initial distance will be 0.5/cos(45 deg) = 0.7071, the angle change would still be 5.1 degrees, but the distance change will be (0.7071/cos(45 deg) - 0.5) = 0.5 m.
+									If it starts angled 45 degrees to the wall, the initial distance will be 0.5/cos(45
+									deg) = 0.7071, the angle change would still be 5.1 degrees, but the distance change
+									will be (0.7071/cos(45 deg) - 0.5) = 0.5 m.
 								</li>
-								
+
 								<li>
-									
+									From above, the two displacement values differ a considerate amount, which will
+									affect the ToF Sensor measurements. Therefore, in certain situations (like the one
+									above) the rotational scan won't be as reliable.
 								</li>
 
 							</ul>
+						</li>
+
+						<li>
+							I tried implementing PID control to make the robot rotate slowly around its own axis at a
+							constant speed. I chose PID because it provides a relatively faster reaction to disturbances
+							and better accuracy. In our case, there is a lot of disturbance which the PID can help with.
+
+							I applied a step input as shown in the code below, and as the robot rotated, the PID would
+							compute a new motor speed given the gyroscope reading. I chose a setpoint of 150 after
+							conducting multiple tests.
+
+							<pre><code>
+// ------------------------  Send Data ------------------------ //
+    res_cmd->command_type = BYTESTREAM_TX;
+    res_cmd->length = 14;
+    //TODO: Put an example of a 32-bit integer and a 64-bit integer
+    //for the stream. Be sure to add a corresponding case in the
+    //python program.
+    t = millis();
+    memcpy(res_cmd->data, &t, 4); // time
+    memcpy(res_cmd->data + 4, &thd, 4);
+    memcpy(res_cmd->data + 8, &Speed, 8);
+
+    amdtpsSendData((uint8_t *)res_cmd, 14);
+
+
+    // ------------------------  measure ang.vel ------------------------ //
+    if ( myICM.dataReady() ) {
+      myICM.getAGMT();                // The values are only updated when you call 'getAGMT'
+
+      thd = myICM.gyrZ();
+      Input = thd;
+
+      // ------------------------  PID ------------------------ //
+      myPID.Compute();
+
+      // ------------------------  Move Motors at Steady speeds ------------------------ //    
+      Speed = min(150,Output+60);
+        
+      myMotorDriver.setDrive( LEFT_MOTOR, 1, Speed); //Drive motor i forward at full speed
+      myMotorDriver.setDrive( RIGHT_MOTOR, 1, Speed); //Drive motor i forward at full speed
+    }
+							</code></pre>
+
+							The slowest I can make my robot reliably turn is at a motor speed of 120. The behavior of
+							the robot is much smoother and stable than the open loop control. Considering that the
+							maximum rotational speed is 200 rad/s, which is much lower than that of the open loop,
+							therefore, this would be an optimal speed at which we can measure the distance using the ToF
+							sensor. <p>
+
+							<div style="width:100%;text-align:center;">
+								<iframe width="560" height="315" src="https://www.youtube.com/embed/eYgjeWMkX24"
+									frameborder="0"
+									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+									allowfullscreen></iframe>
+							</div>
+
+							<div style="width:100%;text-align:center;">
+								<a href="#" class="image main"></a><img src="images/Lab 6/kp-0,ki-1.PNG"
+									style="max-width:75%;" alt="" /></a>
+
+								<a href="#" class="image main"></a><img src="images/Lab 6/kp-5,ki-0.PNG"
+									style="max-width:75%;" alt="" /></a>
+
+								<a href="#" class="image main"></a><img src="images/Lab 6/kp-5,ki-1.PNG"
+									style="max-width:75%;" alt="" /></a>
+							</div>
+
+						</li>
+						<li>
+							I applied the PID control to one motor only (the battery was not at its highest). The slowest I can make the speed is 110. The intuition for why one can achieve much lower speeds now is because the robot is not being restricted to rotate about its own center of mass. I set the motor controller on the passive side to be 60. 
+
+							Given the lowest speed, the orientation of the robot changes very slowly as shown in the figure (~100 rad/s). Mapping a 4x4 box should not be an issue with a lower angular velocity. The accuracy would be better for the measurements directly oriented at the wall, and worse for the ones oriented on an angle but since it is in the middle, the angle should be relatvely lower than being really close to a wall. <p>
+								
+							<div style="width:100%;text-align:center;">
+
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/5YNedRVbg-c" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+							</div>
+
+							<div style="width:100%;text-align:center;">
+
+							<a href="#" class="image main"></a><img src="images/Lab 6/PID_5.PNG"
+							style="max-width:75%;" alt="" /></a>
+					</div>
+						
 						</li>
 
 					</ol>
