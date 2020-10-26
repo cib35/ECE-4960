@@ -369,6 +369,40 @@ hold off
 								style="max-width:75%;" alt="" /></a>
 						</div>
 
+						Map and points on the VM: 
+					
+						<div style="width:100%;text-align:center;">
+							<a href="#" class="image main"></a><img src="images/Lab 7/VM_plot.JPG"
+								style="max-width:75%;" alt="" /></a>
+						</div>
+
+						Code:
+
+						<pre><code>
+# Start points for each line segment describing the map
+start_points = np.array([[4.5, 0],
+							[4.5,30],
+							[20, 40],
+							[38,40],
+							[38, 0]])
+
+# End points for each line segment describing the map
+end_points = np.array([[4.5,30],
+							[20, 40],
+							[38,40],
+							[38, 0],
+						[4.5,0]])
+
+# Check if map described by start_points and end_points is valid
+if(not is_map_valid(start_points, end_points)):
+	raise Exception("The definitions of start_points and end_points are not valid. Please make sure the number of points are equal.")
+						</code></pre>
+
+
+
+
+						To account for the limited number (18) of readings allowed, I would interpolate the values between - 180 to + 180 degrees. This will ensure the spacing between the 18 readings to be accurate. 
+
 					</li>
 
 				</ol>
