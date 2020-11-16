@@ -1,0 +1,266 @@
+<!DOCTYPE HTML>
+<!--
+					Massively by HTML5 UP
+					html5up.net | @ajlkn
+					Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+				-->
+<html>
+
+<head>
+    <title>Lab 9</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <noscript>
+        <link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+</head>
+
+<body class="is-preload">
+
+    <!-- Wrapper -->
+    <div id="wrapper">
+
+        <!-- Header -->
+        <header id="header">
+            <a href="index.html" class="logo">Home</a>
+        </header>
+
+        <!-- Nav -->
+        <nav id="nav">
+            <ul class="links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="Lab1.html">Lab 1</a></li>
+                <li><a href="Lab2.html">Lab 2</a></li>
+                <li><a href="Lab3.html">Lab 3</a></li>
+                <li><a href="Lab4.html">Lab 4</a></li>
+                <li><a href="Lab5.html">Lab 5</a></li>
+                <li><a href="Lab6.html">Lab 6</a></li>
+                <li><a href="Lab7.html">Lab 7</a></li>
+                <li><a href="Lab8.html">Lab 8</a></li>
+                <li class="active"><a href="Lab9.html">Lab 9</a></li>
+
+
+            </ul>
+
+        </nav>
+
+        <!-- Main -->
+        <div id="main">
+
+            <!-- Post -->
+            <section class="post">
+                <header class="major">
+                    <h1>Lab 9: Localization on the real robot<br /></h1>
+                </header>
+            </section>
+            <!-- Lab8  -->
+            <section class="post">
+
+                <!-- Objective -->
+                <h2>Objective</h2>
+                The purpose of this lab is to implement localization on the actual robot <p>
+
+                </p>
+
+                <h2>Simulator</h2>
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/Simulation.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+
+                As shown above, the grid localization on the simulator runs smoothly. There is a little bit of
+                difference between the ground truth and the odom pose which is a discrepancy that originates from the
+                measurents and not the code.
+
+                <h2></h2>
+
+                <h2>Real Robot</h2>
+
+                I was not able to complete the lab for the real robot because of the following reasons:
+
+                <ul>
+                    <li>
+                        Initially, my VM stopped working and so I was trying to retrieve my data from the VM, and I
+                        ended up deleting the VM and I could not
+                        reinstall it anymore due to which I was not able to work on lab 9 or 8 during the week when lab
+                        9 was due.
+                    </li>
+
+                    <li>
+                        Vivek helped me boot up the VM again, and I started working on lab 9 but my bluetooth broke and
+                        was able to get a replacement on tuesday this week.
+                    </li>
+                    <li>
+                        I worked for a few hours to write the code shown below on the Arduino IDE that would send data
+                        via
+                        bluetooth. I tested it on windows (not on the VM) and it worked.
+
+                    </li>
+                    <li>
+                        It took me 2 more hours to set up bluetooth on the VM since I did not have a keyboard with a
+                        right ctrl so I had to acquire one that did. Before I realized the only way for me to enable
+                        bluetooth was from the devices tab, I spent a lot of time trying to figure out other ways to
+                        enable bluetooth than to open the devices tab. I was in scaled view mode so I could not see the
+                        tab intially.
+                    </li>
+                    <li>
+                        Finally, I had to setup the jupyter lab to accept data through bluetooth which took a few more
+                        hours because initially I had no idea what I was doing since I used bluetooth out of the VM for
+                        all the other labs and there were not many resources on how to approch this problem online.
+                        After following steps in the videos posted by Alex, I finally reached to a a
+                        place where I could communicate with the robot (ex. ping it, send message). However, this is
+                        where my progress halted.
+                    </li>
+                    <li>
+                        I spent 27 hours on debugging, testing, writing code, and fixing other issues (ex. VM). My robot
+                        kept failing to
+                        connect through bluetooth (shown below). At one point, it showed me 11 bleak errors in a row.
+                        The problem usually was fixed when I restarted the system/VM which took additional time.
+
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 9/RobotNotFound.JPG"
+                                style="max-width:75%;" alt="" /></a>
+                        </div>
+
+                    </li>
+
+                    <li>
+                        I was really looking forward to testing this on the map and the real robot, but was dissapointed
+                        to not get too far. I intend on continuing to work this monday and tuesday, and
+                        post the completed report by tuesday night.
+                    </li>
+                </ul>
+
+
+                <h3>
+                    Arduino Code (Real Robot):
+                </h3>
+                The code below rotates the robot 360 degrees and stores data in 20 degree increments, then it sends this
+                data over bluetooth to the computer to be analyzed for localization.
+
+                <pre><code>
+ // ------------------------  Store Data at angles needed ------------------------ //
+    if (yaw >= yaw_want[i] && STOP == 0) { // only at the angles we want 
+
+
+      distanceSensor.startRanging(); //Write configuration bytes to initiate measurement
+      int distance = distanceSensor.getDistance(); //Get the result of the measurement from the sensor
+      dist[i] = distance;
+      distanceSensor.clearInterrupt();
+      distanceSensor.stopRanging();
+
+      Serial.print("Distance(mm): ");
+      Serial.print(distance);
+      Serial.print(" | ");
+      Serial.print("yaw_wanted (deg): ");
+      Serial.print(yaw_want[i]);
+      Serial.print(" | ");
+      Serial.print("yaw (deg): ");
+      Serial.print(yaw);
+      Serial.println();
+
+      i++;
+  
+      if (yaw > 340) { // If done with rotation
+        STOP = 1;
+        // ----------------------------------  STOP Motors  ---------------------------------- //
+        digitalWrite( LEDPIN, LEFT_MOTOR );
+        digitalWrite( LEDPIN, RIGHT_MOTOR );
+        myMotorDriver.setDrive( LEFT_MOTOR, 1, 0); //Drive motor i forward at full speed
+        myMotorDriver.setDrive( RIGHT_MOTOR, 1, 0); //Drive motor i forward at full speed
+
+        // ----------------------------------  Send Data  ---------------------------------- //
+        res_cmd->command_type = BYTESTREAM_TX;
+        res_cmd->length = 14;
+
+        // Send the 18 measurements at different angles
+        memcpy(res_cmd->data, &dist[0], 4); 
+        memcpy(res_cmd->data + 4, &dist[1], 4);
+        memcpy(res_cmd->data + 8, &dist[2], 8);
+        memcpy(res_cmd->data + 12, &dist[3], 4);
+        memcpy(res_cmd->data + 16, &dist[4], 4);
+        memcpy(res_cmd->data + 20, &dist[5], 4);
+        memcpy(res_cmd->data + 24, &dist[6], 4);
+        memcpy(res_cmd->data + 28, &dist[7], 4);
+        memcpy(res_cmd->data + 32, &dist[8], 4);
+        memcpy(res_cmd->data + 36, &dist[9], 4);
+        memcpy(res_cmd->data + 40, &dist[10], 4);
+        memcpy(res_cmd->data + 44, &dist[11], 4);
+        memcpy(res_cmd->data + 48, &dist[12], 4);
+        memcpy(res_cmd->data + 52, &dist[13], 4);
+        memcpy(res_cmd->data + 56, &dist[14], 4);
+        memcpy(res_cmd->data + 60, &dist[15], 4);
+        memcpy(res_cmd->data + 64, &dist[16], 4);
+        memcpy(res_cmd->data + 68, &dist[17], 4);
+
+        //Serial.printf("Stream %d \n", bytestream_active);
+        amdtpsSendData((uint8_t *)res_cmd, 74);
+        
+      }
+
+    }
+    else if (STOP == 0) {
+      // ------------------------  Move Motors at Steady speeds ------------------------ //
+      digitalWrite( LEDPIN, LEFT_MOTOR );
+      digitalWrite( LEDPIN, RIGHT_MOTOR );
+      myMotorDriver.setDrive( LEFT_MOTOR, 1, 150); //Rotate
+      myMotorDriver.setDrive( RIGHT_MOTOR, 1, 150);
+
+      // ------------------------  Calculate Yaw and ang. vel------------------------ //
+      if ( myICM.dataReady() ) {
+        myICM.getAGMT();                // The values are only updated when you call 'getAGMT'
+
+        // yaw from Gyro
+        timecurr = millis();
+        dt = (timecurr - timeprev) / 1000;
+        timeprev = timecurr;
+        yaw = yaw + (myICM.gyrZ()) * dt;
+        thd = myICM.gyrZ();
+        Input = thd;
+      }
+
+      // ---------------------------------  PID --------------------------------- //
+      myPID.Compute();
+    }
+  }
+  timeprev = timecurr;
+  trigger_timers();
+  delay(10);
+                </code></pre>
+
+
+
+                <h3>
+                    Map
+                </h3>
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/mapReal.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/mapRealReal.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+
+            </section>
+
+
+</body>
+
+</section>
+
+<!-- Scripts -->
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.scrollex.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
