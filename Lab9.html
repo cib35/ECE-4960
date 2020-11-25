@@ -245,6 +245,194 @@
                         alt="" /></a>
                 </div>
 
+                <p></p>
+                <h2>Offline - Real Robot</h2>
+
+                After not being able to make the bluetooth work, I decided to perform the bayes filter offline. I took the depth measurements using bluetooth on windows, and transfered these 18 depth measurements to the VM in a text file. I used numpy to load the .txt file onto jupyter and into the function "perform_observation_loop". I divided the values by 1000 to convert the units to meters, and added 3 inches ( 0.0762 m) to account for the distance from the sensor to the center of the robot (about which it rotates). I chose 6 different positions to localize. I measured the truth pose for these positions using a measuring tape, and ran the arduino code below to rotate and measure the depth at 20 degree intervals: 
+                <p></p>
+
+                <h3>Arduino code (offline)</h3>
+                <pre><code>
+if (bytestream_active)
+  {
+
+    float Stop = 0;
+
+    // Rotate 360 degrees until all angles have been reached
+    distanceSensor.startRanging(); //Write configuration bytes to initiate measurement
+    while (yaw < 340) {
+
+      if (i == 0) { // skip first iteration
+
+        int distance = distanceSensor.getDistance(); //Get the result of the measurement from the sensor
+        dist[i] = distance;
+
+        i++; timecurr = millis();
+      }
+      else { // everything except first iteration
+        // ------------------------  Calculate Yaw and ang. vel------------------------ //
+        if ( myICM.dataReady() ) {
+          myICM.getAGMT();                // The values are only updated when you call 'getAGMT'
+
+          // yaw from Gyro
+          timecurr = millis();
+          dt = (timecurr - timeprev) / 1000;
+          timeprev = timecurr;
+          yaw = yaw + (myICM.gyrZ()) * dt;
+          thd = myICM.gyrZ();
+          Input = thd;
+        }
+
+        // ---------------------------------  PID --------------------------------- //
+        myPID.Compute();
+
+        // Send data if greater than angles we want
+        if (yaw >= yaw_want[i]) { // only at the angles we want
+
+          int distance = distanceSensor.getDistance(); //Get the result of the measurement from the sensor
+          dist[i] = distance;
+
+          Serial.print("Distance(mm): ");
+          Serial.print(distance);
+          Serial.print(" | ");
+          Serial.print("yaw_wanted (deg): ");
+          Serial.print(yaw_want[i]);
+          Serial.print(" | ");
+          Serial.print("yaw (deg): ");
+          Serial.print(yaw);
+          Serial.println();
+
+          i++;
+        }
+      }
+      timeprev = timecurr;
+
+      // ------------------------  Move Motors at Steady speeds ------------------------ //
+      digitalWrite( LEDPIN, LEFT_MOTOR );
+      digitalWrite( LEDPIN, RIGHT_MOTOR );
+      myMotorDriver.setDrive( LEFT_MOTOR, 1, 170); //Rotate
+      myMotorDriver.setDrive( RIGHT_MOTOR, 1, 170);
+
+      if (yaw > 340) {
+        Stop = 1;
+      }
+
+    }
+
+    if (Stop == 1) {
+      // ------------------------  STOP Motors ------------------------ //
+      digitalWrite( LEDPIN, LEFT_MOTOR );
+      digitalWrite( LEDPIN, RIGHT_MOTOR );
+      myMotorDriver.setDrive( LEFT_MOTOR, 1, 0); //Rotate
+      myMotorDriver.setDrive( RIGHT_MOTOR, 1, 0);
+
+      // ----------------------------------  Send Data  ---------------------------------- //
+      res_cmd->command_type = BYTESTREAM_TX;
+      res_cmd->length = 14;
+
+      // Send the 18 measurements at different angles
+      memcpy(res_cmd->data, &dist[0], 4);
+      memcpy(res_cmd->data + 4, &dist[1], 4);
+      memcpy(res_cmd->data + 8, &dist[2], 8);
+      memcpy(res_cmd->data + 12, &dist[3], 4);
+      memcpy(res_cmd->data + 16, &dist[4], 4);
+      memcpy(res_cmd->data + 20, &dist[5], 4);
+      memcpy(res_cmd->data + 24, &dist[6], 4);
+      memcpy(res_cmd->data + 28, &dist[7], 4);
+      memcpy(res_cmd->data + 32, &dist[8], 4);
+      memcpy(res_cmd->data + 36, &dist[9], 4);
+      memcpy(res_cmd->data + 40, &dist[10], 4);
+      memcpy(res_cmd->data + 44, &dist[11], 4);
+      memcpy(res_cmd->data + 48, &dist[12], 4);
+      memcpy(res_cmd->data + 52, &dist[13], 4);
+      memcpy(res_cmd->data + 56, &dist[14], 4);
+      memcpy(res_cmd->data + 60, &dist[15], 4);
+      memcpy(res_cmd->data + 64, &dist[16], 4);
+      memcpy(res_cmd->data + 68, &dist[17], 4);
+
+      //Serial.printf("Stream %d \n", bytestream_active);
+      amdtpsSendData((uint8_t *)res_cmd, 74);
+
+      distanceSensor.clearInterrupt();
+      distanceSensor.stopRanging();
+
+    }
+  }
+                </code></pre>
+
+                <p></p>
+                <h3>Ground truth Pose</h3>
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/positions_all.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+                <p></p>
+
+
+                <h3>Six Positions on Map </h3>
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/sixpositions.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+                
+                <p></p>
+
+                <h3>Results</h3>
+
+                <h4>Pose 1:</h4>
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/pose1.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+                <h4>Pose 2:</h4>
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/pose2.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+                <h4>Pose 3:</h4>
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/pose3.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+                <h4>Pose 4:</h4>
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/pose4.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+                <h4>Pose 5:</h4>
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/pose5.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+                <h4>Pose 6:</h4>
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 9/pose6.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+
+                <p></p>
+                <h3>Sources of error:</h3>
+
+                As shown each of the representations above, there is a discrepancy between the true pose and the belief determined from the measurements and the bayes filter (small and big), and this is due to the following reasons: 
+
+                <ul>
+                    <li>
+                        The depth measurements are taken during the rotation of the robot, which provides inaccurate depth measurements which result in inaccurate localization. This can be fixed by stopping in the middle of the motion of rotating to take the measurements, rather than taking the measurements in one continuous motion. 
+                    </li> 
+
+                    <li>
+                        The map has certain locations where the depth measurements may be similar yet not completely alike, thefefore, the belief given may be one of two (or more) locations that provide similar depth measurements post-rotation. To fix this, I put in an obstacle, but in future labs I will offset the obstacle to the side a bit so the entire map is not symmetric anymore. 
+                    </li>
+
+                    <li> 
+                        The rotation of the robot was faster than I would have liked. After changing the batteries many times, and testing the motion, I arrived at an input of 175 for the motors which provided a smooth rotation which was still a bit fast, but if I went any lower, the motion became jagged and the robot would not rotate about the center anymore. 
+                    </li>
+                </ul>
+
+                <h3>Conclusion</h3>
+                Considering the possible sources of error, most of the measurements shown above results in beliefs that were relatively close to the ground truth pose. In future labs, this localization will help in path planning since the results seem to be dependable. Furthermore, localization for a moving robot will also depend on the odometry (linear and angular velocities), so the localization results should not jump around since it will depend on initial localization. I can choose an initial point that I know reduces the impact of the errors mentioned above, so the following poses will be relatively more accurate. 
+
+
             </section>
 
 
