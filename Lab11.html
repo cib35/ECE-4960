@@ -1,0 +1,292 @@
+<!DOCTYPE HTML>
+<!--
+					Massively by HTML5 UP
+					html5up.net | @ajlkn
+					Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+				-->
+<html>
+
+<head>
+    <title>Lab 11</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <noscript>
+        <link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+</head>
+
+<body class="is-preload">
+
+    <!-- Wrapper -->
+    <div id="wrapper">
+
+        <!-- Header -->
+        <header id="header">
+            <a href="index.html" class="logo">Home</a>
+        </header>
+
+        <!-- Nav -->
+        <nav id="nav">
+            <ul class="links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="Lab1.html">1</a></li>
+                <li><a href="Lab2.html">2</a></li>
+                <li><a href="Lab3.html">3</a></li>
+                <li><a href="Lab4.html">4</a></li>
+                <li><a href="Lab5.html">5</a></li>
+                <li><a href="Lab6.html">6</a></li>
+                <li><a href="Lab7.html">7</a></li>
+                <li><a href="Lab8.html">8</a></li>
+                <li><a href="Lab9.html">9</a></li>
+                <li><a href="Lab10.html">10</a></li>
+                <li class="active"><a href="Lab11.html">11</a></li>
+            </ul>
+
+        </nav>
+
+        <!-- Main -->
+        <div id="main">
+
+            <!-- Post -->
+            <section class="post">
+                <header class="major">
+                    <h1>Lab 11b: LQR on the Inverted Pendulum on a Cart<br /></h1>
+                </header>
+            </section>
+            <!-- Lab8  -->
+            <section class="post">
+
+                <!-- Objective -->
+                <h2>Objective</h2>
+                The purpose of this lab is to familiarize myself with linear controllers, LQR control and their cost
+                functions.. <p>
+
+                </p>
+                <h2>Feedback control of an idealized pendulum on a cart system</h2>
+                <h3>Adapt the system parameters</h3>
+                I got the length and height of the robot from Lab 3 and updated the parameters on the virtual robot as
+                shown below.
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 11/AdaptParams.JPG" style="max-width:100%;"
+                        alt="" /></a>
+                </div>
+
+                <p></p>
+                <h3>Open Loop</h3>
+
+                I ran the system open loop (without control) to confirm that the nonlinear dynamics are behaving as
+                expected, and as shown below, the animation of the pendulum is what we expect. The pendulum itself is
+                oscillating back and forth, while the cart that the pendulum is connected to moves in the opposite
+                direction. Initially, the pendulum is vertically upwards, and slowly oscillates to rest due to the loss
+                of momentum. Next steps are to compute the input to the cart such that the pendulum stay vertical.
+
+                <p></p>
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/HLwBjyeImDk" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+
+                <p></p>
+                <h3>Add a Kr controller</h3>
+                I added a Kr controller in the format shown below. Intially, I had problems getting a stable system
+                but I noticed a comment on campuswire regarding the (-) sign in the control law u = -kx, which means I was double counting the negative sign since the poles will be in the LHP (making it stable). After removing this sign
+                the behavior of the pendulum was stable and the controller was behaving as expected. As shown below, I
+                tried both aggressive and passive values and inspected their behavior.
+
+                <p></p>
+                <h4>Format</h4>
+                <pre><code>
+dpoles = np.array([...Insert Poles here...])
+Kr = control.place(P.A,P.B,dpoles)
+x = des_state - curr_state
+self.u = np.matmul(Kr,x)
+                </code></pre>
+
+
+                <p></p>
+                <h4>Agressive</h4>
+
+                <pre><code>dpoles = np.array([-700,-2.5,-2,-3]) </code></pre>
+
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/xckn4WlGZYY" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+
+
+                <h4>Passive</h4>
+                <pre><code>dpoles = np.array([-1,-2.5,-2,-3]) </code></pre>
+
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/_JWaU_PxaS4" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+
+                As shown above, the agressive values result in the cart reacting quicker to the pendulum mass falling,
+                relative to the passive values. This makes sense since the pole is much further in the LHP, and the
+                settling time must be smaller.
+
+                <p></p>
+                <h3>Compute and test LQR K-gains</h3>
+
+                Q tells me the status of the penalty if the desired z value is not the current z value, as in how
+                quickly can I stabilize the system. Furthermore, Q is a matrix where each penalty value on the diagonal
+                corresponds to each variable in the state space (z, zdot, theta, thetadot). In this case, I want the
+                penalty to be higher for theta and thetadot since I want to stabilize to the vertical position quickly. <br>
+
+                R tells me the penalty on the control such that I do not spend too much energy in stabilizing the
+                system. In this case, I want R to be small so it allows me to actuate the cart freely and aggressively.
+
+                <p></p>
+                <h4>Test 1:</h4>
+
+                Stable!
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 11/LQR_test1.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+                <p></p>
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/zfm3oRwFbOA" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+
+                <p></p>
+                <h4>Test 2:</h4>
+
+                Stable!
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 11/LQR_test2.JPG" style="max-width:60%;"
+                        alt="" /></a>
+                </div>
+                <p></p>
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/yVGJRPaYNgI" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+                <p></p>
+                <h4>Test 3:</h4>
+
+                Unstable!
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 11/LQR_test3.JPG" style="max-width:60%;"
+                        alt="" /></a>
+                </div>
+                <p></p>
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/5wUzkopqAzo" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+
+                <p></p>
+                As shown above, Test 1 and 2 were stable, whereas, Test 3 was not. I had to increase the penalties by a
+                signifcant amount before the pendulum would fall over (shown above). Test 2 had a quicker response than
+                Test 1, therefore, it was able to stabilize quicker each time the pendulum fell. This quick response was
+                because the penalties were much higher for Test 2 than they were for Test 1 (a magnitude higher).
+                <br><br>
+
+                The real actuators and sensors on the robot are not reliable enough, therefore, Q and R would be higher
+                as to penalize the theta and thetadot values of the pendulum, so the system stabilizes quicker. However,
+                the motors are not reliable to perform a quick precise motion, therefore, the penalties cannot be so
+                high such that it will be impossible for the robot to meet the speed and accuracy at the same time (this
+                will only affect the system by dropping the pendulum). Therefore, I would pick test 2. <br><br>
+
+                I computed the K values in MATLAB with the code shown below, and transfered them to python for
+                animation:
+
+                <p></p>
+                <pre><code>
+A = [0.0, 1.0, 0.0, 0.0;
+    0.0, -b/m2, -m1*g/m2, 0.0;
+    0.0, 0.0, 0.0, 1.0;
+    0.0, -b/(m2*ell), -(m1+m2)*g/(m2*ell), 0.0];
+
+B = [0.0;
+    1.0/m2;
+    0.0;
+    1.0/(m2*ell)];
+
+C = [1.0, 0.0, 0.0, 0.0;
+    0.0, 1.0, 0.0, 0.0;
+    0.0, 0.0, 1.0, 0.0;
+    0.0, 0.0, 0.0, 1.0];
+
+
+Q = [1,0,0,0;
+    0,1,0,0;
+    0,0,100000000,0;
+    0,0,0,1000000000]
+R = 0.0001
+    
+K = lqr(A,B,Q,R)
+
+                </code></pre>
+
+                <h2>Feedback control of a non-ideal pendulum on a cart system</h2>
+
+                In order to account for the limits of the robot on the minimum (deadband) and maximum (saturation)
+                velocities, I added a conditional statement in the code that would check if zdot is within a certain
+                range. I used the same R and Q from test 2 above. I checked if the value of zdot was negative or not,
+                and stored it so that I could compare the absolute values with the bounds and then multiply zdot by the
+                sign after conducting this check. In the conditional statements, I checked if the value was too low or
+                too high, and set it to minimum velocity or maximum velocity, respectively. The result of this change is
+                shown in the video below, where the system is still stable.
+                <p></p>
+                <pre><code>
+Kr = np.array([-31.623 , -104.33  ,     1512.8     ,  1126.9]) # From Q and R
+x = des_state - curr_state
+self.u = np.matmul(Kr,x)
+
+# Bounds
+maxV = 0.8636 # @255 
+minV = 0 # @~75
+
+# Check if zdot is negative or positive 
+sign = 1 # If (+)
+if (zdot < 0):
+    sign = -1 # If (-)
+
+# Check if zdot is outsides bounds
+zdot = abs(zdot)
+if (zdot < minV or zdot > maxV):
+    if (zdot < minV): # Check if less than deadband
+        zdot = minV
+    elif (zdot > maxV): # Check if greater than saturation
+        zdot = maxV
+
+zdot = sign*zdot
+                </code></pre>
+
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/tefg47Zr8Qw" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+
+            </section>
+        </div>
+    </div>
+</body>
+
+<!-- Scripts -->
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.scrollex.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
