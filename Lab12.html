@@ -1,0 +1,475 @@
+<!DOCTYPE HTML>
+<!--
+					Massively by HTML5 UP
+					html5up.net | @ajlkn
+					Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+				-->
+<html>
+
+<head>
+    <title>Lab 12</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <noscript>
+        <link rel="stylesheet" href="assets/css/noscript.css" />
+    </noscript>
+</head>
+
+<body class="is-preload">
+
+    <!-- Wrapper -->
+    <div id="wrapper">
+
+        <!-- Header -->
+        <header id="header">
+            <a href="index.html" class="logo">Home</a>
+        </header>
+
+        <!-- Nav -->
+        <nav id="nav">
+            <ul class="links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="Lab1.html">1</a></li>
+                <li><a href="Lab2.html">2</a></li>
+                <li><a href="Lab3.html">3</a></li>
+                <li><a href="Lab4.html">4</a></li>
+                <li><a href="Lab5.html">5</a></li>
+                <li><a href="Lab6.html">6</a></li>
+                <li><a href="Lab7.html">7</a></li>
+                <li><a href="Lab8.html">8</a></li>
+                <li><a href="Lab9.html">9</a></li>
+                <li><a href="Lab10.html">10</a></li>
+                <li><a href="Lab11.html">11</a></li>
+                <li class="active"><a href="Lab12.html">12</a></li>
+            </ul>
+
+        </nav>
+
+        <!-- Main -->
+        <div id="main">
+
+            <!-- Post -->
+            <section class="post">
+                <header class="major">
+                    <h1>Lab 12b: LQG on the Inverted Pendulum on a Cart<br /></h1>
+                </header>
+            </section>
+            <!-- Lab 12  -->
+            <section class="post">
+
+                <!-- Objective -->
+                <h2>Objective</h2>
+                The purpose of this lab is to familiarize myself with the Kalman Filter by simulating it with an
+                inverted pendulum on a cart from Lab 11b. <p>
+
+                </p>
+                <h2>Kalman Filter</h2>
+
+                <ol>
+                    <li>
+                        Kalman filter function: <br>
+                        <ul>
+                            <li>
+
+                                As shown in the code:
+
+                                <pre><code>
+Ad = scipy.linalg.expm(P.A*P.T_update)
+Bd = P.B*P.T_update
+                                </code></pre>
+
+                                The A and B matrices are updated using T_update which is defined as the controller and
+                                estimator update rate in seconds. Using this update rate, the A and B matrices are
+                                changed for a discrete system from a continuous system to be used with the Kalman
+                                filter.
+
+                            </li>
+                            <li>
+
+                                Considering that the states are:
+                                <pre><code>
+x = [z, zdot, theta, thetadot]
+                                </code></pre>
+
+                                The C matrix below shows that we are only measuring the fourth position, where the the
+                                state is thetadot, whereas, the rest of the states are being estimated.
+
+                                <pre><code>
+C = np.matrix([[0.0, 0.0, 0.0, 1.0]]) 
+                                </code></pre>
+
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        Initially the code would not run and would give me an error regarding np.sin(theta), but the
+                        errors were gone once I replaced theta with theta[0] as suggested on campuswire. Once I made
+                        these
+                        changes, the behavior is as expected (as shown below) and the KF performs the state estimation
+                        properly:
+
+                        <p></p>
+                        <div style="width:100%;text-align:center;">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/vZoZu8-PlcQ"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen></iframe>
+                        </div>
+
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/1.JPG" style="max-width:75%;"
+                                alt="" /></a>
+                        </div>
+                        As shown above, the system is stable.
+
+
+                    </li>
+                    <li>
+                        To find the observability matrix, I imported the control library and used control.obsv:
+                        <pre><code> 
+import control
+print("O")
+O = control.obsv(Ad,P.C)
+print(O)
+print("Rank")
+print(np.linalg.matrix_rank(O))
+                        </code></pre>
+
+                        If you use the obsv(A,C)-command with this system, one will find that it is actually not
+                        observable since the rank(observability matrix) is not equal to n = 3 (should be 4):
+
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/obsornot.JPG"
+                                style="max-width:100%;" alt="" /></a>
+                        </div>
+
+                        As shown in the observablity matrix above, the z state is the one that is unobservable. we are
+                        simulating close to a perfect system so the Kalman filter can estimate states properly and since
+                        z is one of the states being estimated, the system is still stable.
+                    </li>
+                </ol>
+
+                <p></p>
+                <h2>Add imperfections and adjust the Kalman Filter</h2>
+                Please note that after a noise is added, it is not removed for the next step so we can continue testing
+                the Kalman filter under all conditions. <p></p>
+
+                <h3>Adding discrepancy to the initial state </h3>
+
+                To add this discrepancy to the intial state, I altered the inputs to the line: states =
+                [np.array([[P.z0], [P.zdot0], [P.theta0], [P.thetadot0]])] in runSimulation.py. I started by adding an
+                offset value of 0.1 to each of the states and incremented by 0.2, up to a value of 0.5.
+                <br>
+                Format:
+                <pre><code>
+offset = 0.5
+states = [np.array([[P.z0+offset], [P.zdot0+offset], [P.theta0+offset], [P.thetadot0+offset]])]                    
+                </code></pre>
+                <ul>
+                    <li>
+                        Offset = 0.1<br>
+                        The system is stable for this offset value, the time to stabilize has not increased a
+                        significant amount.
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/offset=0.1.JPG"
+                                style="max-width:75%;" alt="" /></a>
+                        </div>
+                    </li>
+                    <li>
+                        Offset = 0.3<br>
+                        The system is still stable for this offset value, but the time to stabilize has increased a
+                        significant amount and the cart ends up leaving the screen for a small period of time but
+                        returns to stabilize.
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/offset=0.3.JPG"
+                                style="max-width:75%;" alt="" /></a>
+                        </div>
+                    </li>
+                    <li>
+                        Offset = 0.5<br>
+                        The system is still stable for this offset value, however,the time to stabilize has increased a
+                        lot and the cart leaves the screen for a longer period of time after which it returns to
+                        stabilize. This increase in settling time makes sense considering that the intial theta value is
+                        being increased and the cart takes time responding to this. 
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/offset=0.5.JPG"
+                                style="max-width:75%;" alt="" /></a>
+                        </div>
+                    </li>
+                </ul>
+
+                I stopped at this value because when I increased the offset any higher, the cart would jump out of the
+                screen and the plotting method would start freaking out by opening multiple figures and the cart would
+                disappear.
+
+                <p>
+                <h3>Saturation and Deadband</h3>
+
+                I picked deadband and saturation values using the following relations: <br>
+                deadband = motordeadband/255*acceleration*mass = (75/255)*(3.33)*(0.46) = 0.45 <br>
+                Saturation = mass * acceleration = 0.46*3.33 = 1.532 <p></p>
+
+                To add saturation and deadband to u, I altered the following code in runSimulation.py:<p>
+
+                <pre><code>
+u = -Kr.dot(mu-des_state)
+
+# Adding a realistic saturation value and deadband to u
+saturation = 1.532
+deadband = 0.45
+
+if u > 0:
+    if u < deadband:
+        u = 0
+    elif u > saturation:
+        u = saturation
+else:
+    if abs(u) < deadband:
+        u = 0
+    elif abs(u) > saturation:
+        u = -1*saturation
+                </code></pre>
+                <br>
+
+                As shown below, this resulted in a stable system with the inverted pendulum being stabilized relatively
+                quickly which proves that kalman filter is still able to estimate the states properly:
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 12/Sat_Dead.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/xPFkKHLjE_M" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+
+                <p></p>
+                <h3>Process and Measurement Noise</h3>
+                <h4>Process Noise</h4>
+                The process noise in the simulation is added by uncommenting the following lines in
+                pendulumNonLinearDynamics.py:
+                <pre><code>
+dydt = [ydot0 + np.random.randn()*0.01, ydot1 + np.random.randn()*0.01, ydot2 + np.random.randn()*0.01, ydot3 + np.random.randn()*0.01]
+                </code></pre>
+
+                As shown below, even with the process noise, the system is still stable but the settling time of
+                the system is relatively higher since the system reacts slower. :<br>
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 12/2.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/D0thKoYuALM" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+
+                <h4>Measurement Noise</h4>
+                To add the measurement noise, I tried to change sigma = np.eye(4)*0.00001 but the noise did
+                not make any difference so then I changed the following code to add random noise to the sensor
+                measurements:
+                <pre><code>
+#Update controller and sensors every <T_update> seconds
+if (t % P.T_update) < dt:
+    u=-Kr.dot(mu-des_state)
+    y_kf = P.C.dot(old_state) + np.random.normal(0,0.1)
+    mu,sigma = kalmanFilter(mu,sigma,u,y_kf)
+                </code></pre>
+
+                I added noise based on a gaussian (normal) distribution with mean = 0, and variance = 0.1. I chose these
+                parameters as to not make the system unstable while also applying a reasonable and realistic measurement
+                noise to the system. As shown below, the system was still stable, however, the performance was worse
+                than before as expected: <br>
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 12/measurementNoise.JPG"
+                        style="max-width:75%;" alt="" /></a>
+                </div>
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/_KIRuC0UERM" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+                <p></p>
+
+                <h3>Adjusting the parameters of the A and B matrices</h3>
+
+                The values of A and B were adjusted in Kalmanfilter.py as shown below:
+
+                <pre><code>
+factor = 1.0001
+Ad = scipy.linalg.expm(P.A*P.T_update)*factor
+Bd = P.B*P.T_update*factor
+                </code></pre>
+
+                Initially, I adjusted all the values by multiplying them by factor of 1.0001 from the original and the
+                system was stable as shown below:
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 12/factor=1.0001.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+
+                Then I increased the factor by a magnitude higher: factor = 1.001 which was an unstable system as shown
+                below. The inverted pendulum fell to the left since the cart was not able to accelerate quick enough to
+                stabilize it.
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 12/factor=1.001.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+
+                Then I chose a factor value in between: 1.0005 ,which also failed, I repeated the process until a
+                factor of 1.0002 provided a stable system as shown below which I believe is the maximum I could fugde up
+                to before the system becomes unstable. The cart moves a lot but the system is still stable:
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 12/factor=1.0002.JPG" style="max-width:75%;"
+                        alt="" /></a>
+                </div>
+
+                <h3>Changing the update time of the sensor and the controller (T_update)</h3>
+
+                I changed T_update in pendulumParam.py to the following values: <br>
+
+                <ul>
+                    <li>
+                        T_update = 0.005 s <br>
+                        Result = Stable system
+
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/T_update=0.005.JPG"
+                                style="max-width:75%;" alt="" /></a>
+                        </div>
+                    </li>
+                    <li>
+                        T_update = 0.01 s <br>
+                        Result = Stable system
+
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/T_update=0.01.JPG"
+                                style="max-width:75%;" alt="" /></a>
+                        </div>
+
+                    </li>
+                    <li>
+                        T_update = 0.03 s <br>
+                        Result = Stable system
+
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/T_update=0.03.JPG"
+                                style="max-width:75%;" alt="" /></a>
+                        </div>
+
+                    </li>
+                    <li>
+                        T_update = 0.04 s <br>
+                        Result = Stable system
+
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/T_update=0.04.JPG"
+                                style="max-width:75%;" alt="" /></a>
+                        </div>
+
+                    </li>
+                    <li>
+                        T_update = 0.05 s <br>
+                        Result = Unstable system
+
+                        <div style="width:100%;text-align:center;">
+                            <a href="#" class="image main"></a><img src="images/Lab 12/T_update=0.05.JPG"
+                                style="max-width:75%;" alt="" /></a>
+                        </div>
+
+                    </li>
+
+                </ul>
+
+                These test show that the maximum I can increase the value of T_update is 0.04s before the system becomes
+                unstable. <p></p>
+
+                <h3>Real robot</h3>
+
+                I do not believe that the real robot will be able to stabilize the pendulum because even though the
+                Kalman filter does a great job at stabilizing the system with the added simulated process and
+                measurement noise, or with imperfect initial conditions. There are still factors that would need be to
+                considered in the real robot that have not been considered in the simulation. One of which is the motion
+                of the robot in the 3rd dimension. We are assuming that the robot will always travel in a straight line
+                which is not always the case. There are methods to make the motion of the robot as straight as possible,
+                however, that depends on the ability of the robot to rotate and in previous labs, I found this issue
+                challenging and the solution was not completely perfect. On another note, the frictional components have
+                not be considered: ex. between the pendulum and the cart, or the cart and the floor. The lack of
+                friction may also work against the controller, i.e. if the robot tries to stop and slips, it may cause a
+                delay in the response. Finally, the robot may have to make small motions to stabilize the system which I
+                have experienced to be a difficult task.
+                <p></p>
+
+                <h2>[Extra Credit] Changing the measurements</h2>
+
+                First I changed the C matrix such that it measures both z and thetadot, and then I changed the noise to
+                be a 2x1 rather than a 1x1. <br>
+
+                <pre><code>
+C = np.matrix([[1.0, 0.0, 0.0, 0.0],[0.0, 0.0, 0.0, 1.0]]) 
+                </code></pre>
+
+                After changing these values, I still had to change the code such that I will only measure thetadot at 100Hz
+                and z at 10 Hz and so I changed T_update to 0.01 and I added a variable that would count the number of
+                times the Kalman filter has completed the prediction and update step. I added that counter as the input
+                to the kalman filter function along with two conditional statements as shown below:
+
+                <pre><code>
+if (np.remainder(c,10)): # 10 Hz
+    C_Upd = P.C
+    y_Upd = y
+else: # 100 Hz
+    C_Upd = P.C[1, :]
+    y_Upd = y[1, :]
+
+mu_p = Ad.dot(mu) + Bd.dot(u) 
+sigma_p = Ad.dot(sigma.dot(Ad.transpose())) + sigma_u
+
+y_m = y_Upd-C_Upd.dot(mu_p)
+sigma_m = C_Upd.dot(sigma_p.dot(C_Upd.transpose())) + sigma_n
+kkf_gain = sigma_p.dot(C_Upd.transpose().dot(np.linalg.inv(sigma_m)))
+
+mu = mu_p + kkf_gain.dot(y_m)    
+sigma=(np.eye(4)-kkf_gain.dot(C_Upd)).dot(sigma_p)
+
+return mu,sigma
+
+                </code></pre>
+
+               The conditional statements check if the counter has a remainder once divided by 10. This ensures that both z and thetadot will be measured at 10 Hz, and only thetadot will be measured at 100 Hz. As shown below, after changing these measurement values, the system is still stable: 
+
+                <div style="width:100%;text-align:center;">
+                    <a href="#" class="image main"></a><img src="images/Lab 12/bla.JPG"
+                        style="max-width:75%;" alt="" /></a>
+                </div>
+                <div style="width:100%;text-align:center;">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/AuoQG8Prrbg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <p></p>
+
+            </section>
+        </div>
+    </div>
+</body>
+
+<!-- Scripts -->
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.scrollex.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
